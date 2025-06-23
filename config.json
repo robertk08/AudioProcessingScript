@@ -1,18 +1,26 @@
 {
   "output_dir": "/Users/robertkrause/Documents/Projekte/Abi25Audio",
   "csv_file": "testdata.csv",
-  "default_clip_duration_seconds": 45,
-  "log_file": "process_log.txt",
+  "default_clip_duration_seconds": 40,
+  "log_file": "processes.log",
   "max_download_retries": 3,
   "retry_delay_seconds": 5,
   "normalize_audio": true,
   "overwrite_existing_files": true,
-  "audio_format": "wav",
+  "audio_format": "mp3",
   "csv_delimiter": ";",
+  "csv_columns": {
+    "name": "Name",
+    "surname": "Nachname",
+    "song": "Lied (Titel & Künstler)",
+    "start_time": "Startzeit (Minute/Sekunde)"
+  },
   "fade_in": true,
   "fade_in_duration_ms": 5000,
   "fade_out": true,
-  "fade_out_duration_ms": 5000,
+  "fade_out_duration_ms": 10000,
   "audio_bitrate": "320k",
-  "sample_rate": 44100
+  "sample_rate": 44100,
+  "target_dBFS": -20.0,
+  "parallel_workers": 10
 }

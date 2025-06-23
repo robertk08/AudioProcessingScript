@@ -5,6 +5,7 @@ import subprocess
 import time
 import logging
 from pydub import AudioSegment
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Config laden
 def load_config(path="config.json"):
@@ -13,7 +14,7 @@ def load_config(path="config.json"):
 
 config = load_config()
 
-log_file = config.get("log_file", "process_log.txt")
+log_file = config.get("log_file", "process.log")
 
 # Logdatei zu Beginn leeren
 with open(log_file, "w", encoding="utf-8") as f:
@@ -72,7 +73,8 @@ def trim_song(input_path, output_path, start_time, duration_sec=30, normalize=Tr
         snippet = snippet.set_channels(2)
 
         if normalize:
-            snippet = match_target_amplitude(snippet, -20.0)
+            target_dBFS = config.get("target_dBFS", -20.0)
+            snippet = match_target_amplitude(snippet, target_dBFS)
 
         # Apply fade in/out if enabled in config
         if config.get("fade_in", False):
@@ -105,54 +107,68 @@ def match_target_amplitude(sound, target_dBFS):
     change_in_dBFS = target_dBFS - sound.dBFS
     return sound.apply_gain(change_in_dBFS)
 
+
+# Neue Funktion: Verarbeitung einer einzelnen Zeile
+def process_row(row):
+    vorname = row.get(config["csv_columns"]["name"], "").strip()
+    nachname = row.get(config["csv_columns"]["surname"], "").strip()
+    song = row.get(config["csv_columns"]["song"], "").strip()
+    startzeit = row.get(config["csv_columns"]["start_time"], "").strip()
+
+    if not vorname or not nachname or not song or not startzeit:
+        logging.info(f"Überspringe unvollständige Zeile: {row}")
+        return
+
+    filename_base = f"{nachname}, {vorname}"
+    audio_format = config.get("audio_format", "mp3")
+    final_path = os.path.join(output_dir, f"{filename_base}.{audio_format}")
+    temp_path = os.path.join(output_dir, f"{filename_base}_full.%(ext)s")
+
+    if os.path.exists(final_path) and not config.get("overwrite_existing_files", False):
+        logging.info(f"Datei existiert bereits und overwrite ist False: {final_path}")
+        print(f"⏭ Überspringe {filename_base}, Datei existiert.")
+        return
+
+    print(f"🔄 Verarbeite {vorname} {nachname}: {song} ab {startzeit}")
+    logging.info(f"Starte Verarbeitung: {vorname} {nachname}, Song: {song}, Startzeit: {startzeit}")
+
+    if not download_song(song, temp_path,
+                         retries=config.get("max_download_retries", 3),
+                         delay=config.get("retry_delay_seconds", 5)):
+        logging.error(f"Download fehlgeschlagen für {song}")
+        print(f"❌ Download fehlgeschlagen für {song}")
+        return
+
+    downloaded_file = temp_path.replace("%(ext)s", audio_format)
+
+    if not trim_song(downloaded_file, final_path, startzeit,
+                     duration_sec=config.get("default_clip_duration_seconds", 30),
+                     normalize=config.get("normalize_audio", True)):
+        logging.error(f"Schneiden fehlgeschlagen für {final_path}")
+        print(f"❌ Schneiden fehlgeschlagen für {final_path}")
+        return
+
+    if os.path.exists(downloaded_file):
+        os.remove(downloaded_file)
+
+    print(f"✅ Gespeichert: {final_path}")
+    logging.info(f"Erfolgreich gespeichert: {final_path}")
+
 def process_csv(csv_path):
     delimiter = config.get("csv_delimiter", ";")
     with open(csv_path, newline='', encoding="utf-8") as file:
         reader = csv.DictReader(file, delimiter=delimiter)
-        for row in reader:
-            vorname = row.get("Name", "").strip()
-            nachname = row.get("Nachname", "").strip()
-            song = row.get("Lied (Titel & Künstler)", "").strip()
-            startzeit = row.get("Startzeit (Minute/Sekunde)", "").strip()
+        rows = list(reader)
 
-            if not vorname or not nachname or not song or not startzeit:
-                logging.info(f"Überspringe unvollständige Zeile: {row}")
-                continue
-
-            filename_base = f"{nachname}, {vorname}"
-            audio_format = config.get("audio_format", "mp3")
-            final_path = os.path.join(output_dir, f"{filename_base}.{audio_format}")
-            temp_path = os.path.join(output_dir, f"{filename_base}_full.%(ext)s")
-
-            if os.path.exists(final_path) and not config.get("overwrite_existing_files", False):
-                logging.info(f"Datei existiert bereits und overwrite ist False: {final_path}")
-                print(f"⏭ Überspringe {filename_base}, Datei existiert.")
-                continue
-
-            print(f"🔄 Verarbeite {vorname} {nachname}: {song} ab {startzeit}")
-            logging.info(f"Starte Verarbeitung: {vorname} {nachname}, Song: {song}, Startzeit: {startzeit}")
-
-            if not download_song(song, temp_path,
-                                 retries=config.get("max_download_retries", 3),
-                                 delay=config.get("retry_delay_seconds", 5)):
-                logging.error(f"Download fehlgeschlagen für {song}")
-                print(f"❌ Download fehlgeschlagen für {song}")
-                continue
-
-            downloaded_file = temp_path.replace("%(ext)s", audio_format)
-
-            if not trim_song(downloaded_file, final_path, startzeit,
-                             duration_sec=config.get("default_clip_duration_seconds", 30),
-                             normalize=config.get("normalize_audio", True)):
-                logging.error(f"Schneiden fehlgeschlagen für {final_path}")
-                print(f"❌ Schneiden fehlgeschlagen für {final_path}")
-                continue
-
-            if os.path.exists(downloaded_file):
-                os.remove(downloaded_file)
-
-            print(f"✅ Gespeichert: {final_path}")
-            logging.info(f"Erfolgreich gespeichert: {final_path}")
+    max_workers = config.get("parallel_workers", 4)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(process_row, row) for row in rows]
+        for future in as_completed(futures):
+            # Fehler werden bereits im Logging behandelt, optional Exceptions anzeigen:
+            try:
+                future.result()
+            except Exception as e:
+                logging.error(f"Fehler bei paralleler Verarbeitung: {e}")
 
 if __name__ == "__main__":
     csv_file = config.get("csv_file", "testdata.csv")
