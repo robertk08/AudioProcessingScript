@@ -1,0 +1,15 @@
+2025-06-23 13:42:19,451 - INFO - Starte Verarbeitung: Lena Marie Müller, Song: Imagine Dragons - Believer, Startzeit: 00:23
+2025-06-23 13:42:19,451 - INFO - Versuche Download: 'Imagine Dragons - Believer', Versuch 1
+2025-06-23 13:42:24,805 - INFO - Erfolgreich gespeichert: /Users/robertkrause/Documents/Projekte/Abi25Audio/Müller, Lena Marie.wav
+2025-06-23 13:42:24,805 - INFO - Starte Verarbeitung: Tim Andreas Schmidt, Song: Taylor Swift - Shake It Off, Startzeit: 00:45
+2025-06-23 13:42:24,805 - INFO - Versuche Download: 'Taylor Swift - Shake It Off', Versuch 1
+2025-06-23 13:42:29,590 - INFO - Erfolgreich gespeichert: /Users/robertkrause/Documents/Projekte/Abi25Audio/Schmidt, Tim Andreas.wav
+2025-06-23 13:42:29,590 - INFO - Starte Verarbeitung: Sophie Meier, Song: Coldplay - Viva La Vida, Startzeit: 00:10
+2025-06-23 13:42:29,590 - INFO - Versuche Download: 'Coldplay - Viva La Vida', Versuch 1
+2025-06-23 13:42:35,624 - INFO - Erfolgreich gespeichert: /Users/robertkrause/Documents/Projekte/Abi25Audio/Meier, Sophie.wav
+2025-06-23 13:42:35,624 - INFO - Starte Verarbeitung: Jonas Schneider, Song: Eminem - Lose Yourself, Startzeit: 00:30
+2025-06-23 13:42:35,625 - INFO - Versuche Download: 'Eminem - Lose Yourself', Versuch 1
+2025-06-23 13:42:40,748 - INFO - Erfolgreich gespeichert: /Users/robertkrause/Documents/Projekte/Abi25Audio/Schneider, Jonas.wav
+2025-06-23 13:42:40,748 - INFO - Starte Verarbeitung: Emma Fischer, Song: Adele - Rolling in the Deep, Startzeit: 00:15
+2025-06-23 13:42:40,748 - INFO - Versuche Download: 'Adele - Rolling in the Deep', Versuch 1
+2025-06-23 13:42:45,565 - INFO - Erfolgreich gespeichert: /Users/robertkrause/Documents/Projekte/Abi25Audio/Fischer, Emma.wav

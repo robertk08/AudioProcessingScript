@@ -1,0 +1,12 @@
+{
+  "output_dir": "/Users/robertkrause/Documents/Projekte/Abi25Audio",
+  "csv_file": "testdata.csv",
+  "default_clip_duration_seconds": 45,
+  "log_file": "process_log.txt",
+  "max_download_retries": 3,
+  "retry_delay_seconds": 5,
+  "normalize_audio": true,
+  "overwrite_existing_files": true,
+  "audio_format": "wav",
+  "csv_delimiter": ";"
+}
