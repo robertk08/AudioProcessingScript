@@ -67,11 +67,35 @@ def trim_song(input_path, output_path, start_time, duration_sec=30, normalize=Tr
         if end_ms > len(audio):
             end_ms = len(audio)
         snippet = audio[start_ms:end_ms]
+
+        # Ensure stereo output
+        snippet = snippet.set_channels(2)
+
         if normalize:
             snippet = match_target_amplitude(snippet, -20.0)
+
+        # Apply fade in/out if enabled in config
+        if config.get("fade_in", False):
+            fade_in_duration = config.get("fade_in_duration_ms", 0)
+            if fade_in_duration > 0:
+                snippet = snippet.fade_in(fade_in_duration)
+        if config.get("fade_out", False):
+            fade_out_duration = config.get("fade_out_duration_ms", 0)
+            if fade_out_duration > 0:
+                snippet = snippet.fade_out(fade_out_duration)
+
         # Nutze Format aus Config (Standard mp3)
         audio_format = config.get("audio_format", "mp3")
-        snippet.export(output_path, format=audio_format)
+        bitrate = config.get("audio_bitrate", None)
+        sample_rate = config.get("sample_rate", None)
+
+        export_kwargs = {}
+        if bitrate and audio_format.lower() == "mp3":
+            export_kwargs["bitrate"] = bitrate
+        if sample_rate:
+            export_kwargs["parameters"] = ["-ar", str(sample_rate)]
+
+        snippet.export(output_path, format=audio_format, **export_kwargs)
         return True
     except Exception as e:
         logging.error(f"Fehler beim Schneiden: {e}")
