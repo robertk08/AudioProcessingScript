@@ -1,4 +1,4 @@
-# Graduation Class of 2025 Audio Processing Script
+# Audio Processing Script
 
 A Python script that automates downloading, trimming, and exporting audio clips from YouTube based on a CSV playlist.
 
