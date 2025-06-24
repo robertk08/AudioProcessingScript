@@ -18,9 +18,9 @@
   "fade_in": true,
   "fade_in_duration_ms": 5000,
   "fade_out": true,
-  "fade_out_duration_ms": 10000,
+  "fade_out_duration_ms": 15000,
   "audio_bitrate": "320k",
   "sample_rate": 44100,
   "target_dBFS": -20.0,
-  "parallel_workers": 10
+  "parallel_workers": 15
 }
