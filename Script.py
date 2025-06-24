@@ -152,7 +152,7 @@ def process_row(row, output_dir):
     logging.info(f"Successfully saved: {final_path}")
 
 # Process the entire CSV file in parallel using threads
-def process_csv(csv_path, output_dir):
+def process_csv(csv_path, output_dir, progress=None):
     # Retrieve CSV delimiter and parallelism settings from config
     delimiter = config.get("csv_delimiter", ",")
     max_workers = config.get("parallel_workers", 4)
@@ -161,13 +161,17 @@ def process_csv(csv_path, output_dir):
         reader = csv.DictReader(file, delimiter=delimiter)
         rows = list(reader)
 
-    progress_bar = tqdm(
-        total=len(rows),
-        unit="file",
-        bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
-        dynamic_ncols=True,
-        leave=True
-    )
+    completed = 0
+    total_rows = len(rows)
+
+    if not progress:
+        progress_bar = tqdm(
+            total=total_rows,
+            unit="file",
+            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
+            dynamic_ncols=True,
+            leave=True
+        )
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_row = {executor.submit(process_row, row, output_dir): row for row in rows}
@@ -181,8 +185,13 @@ def process_csv(csv_path, output_dir):
                 future.result()
             except Exception as e:
                 logging.error(f"Error during parallel processing for row {row}: {e}")
-            progress_bar.update(1)
-    progress_bar.close()
+            completed += 1
+            if progress:
+                progress.progress(int(completed / total_rows * 100), text=f"Processing {completed} of {total_rows}")
+            else:
+                progress_bar.update(1)
+    if not progress:
+        progress_bar.close()
 
 # Setup logging configuration to file
 def setup_logging():

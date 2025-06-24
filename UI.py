@@ -3,10 +3,13 @@ import tempfile
 from pathlib import Path
 from Script import process_csv, config, setup_logging  # Adjust import if your script filename differs
 
+progress = None
+status_msg = st.empty()
+
 # Set up logging
 setup_logging()
 
-st.set_page_config(page_title="Audio Processor", layout="wide")
+st.set_page_config(page_title="🎧 Audio Studio", layout="centered", initial_sidebar_state="expanded")
 
 # Sidebar – runtime config (will override config.json temporarily)
 st.sidebar.title("⚙️ Configuration")
@@ -49,9 +52,11 @@ with tabs[0]:
 
         if st.button("Start CSV Processing"):
             update_runtime_config()
-            with st.spinner("Processing..."):
-                process_csv(temp_csv_path, output_dir)
-            st.success("CSV processed successfully.")
+            progress = st.progress(0, text="Processing CSV...")
+            status_msg.info("⏳ Starting CSV processing...")
+            process_csv(temp_csv_path, output_dir, progress=progress)
+            progress.progress(100, text="Complete")
+            status_msg.success("✅ CSV processed successfully.")
 
 # === Tab 2: Manual Entry ===
 with tabs[1]:
@@ -72,10 +77,12 @@ with tabs[1]:
             temp_row_path = Path(tempfile.mkstemp(suffix=".csv")[1])
             with open(temp_row_path, "w", encoding="utf-8") as f:
                 f.write(";".join(config["csv_columns"].values()) + "\n")
-                f.write(f"{last_name};{first_name};{song_query};{start_time}\n")
-            with st.spinner("Processing..."):
-                process_csv(temp_row_path, output_dir)
-            st.success("Manual entry processed successfully.")
+                f.write(f"{first_name};{last_name};{song_query};{start_time}\n")
+            progress = st.progress(0, text="Processing Entry...")
+            status_msg.info("⏳ Starting manual entry processing...")
+            process_csv(temp_row_path, output_dir, progress=progress)
+            progress.progress(100, text="Complete")
+            status_msg.success("✅ Manual entry processed successfully.")
 
 # === Tab 3: Settings Overview ===
 with tabs[2]:
