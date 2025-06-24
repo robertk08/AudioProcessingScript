@@ -1,61 +1,93 @@
 import streamlit as st
+import tempfile
+from pathlib import Path
+from Script import process_csv, config, setup_logging  # Adjust import if your script filename differs
+
+# Set up logging
+setup_logging()
 
 st.set_page_config(page_title="Audio Processor", layout="wide")
 
-# Sidebar: Global settings
+# Sidebar – runtime config (will override config.json temporarily)
 st.sidebar.title("⚙️ Configuration")
-audio_format = st.sidebar.selectbox("Audio Format", ["mp3", "wav", "aac"], index=0)
-clip_duration = st.sidebar.slider("Clip Duration (seconds)", 10, 120, 30)
-normalize = st.sidebar.checkbox("Normalize Audio", value=True)
-fade_in = st.sidebar.checkbox("Fade In")
-fade_out = st.sidebar.checkbox("Fade Out")
-sample_rate = st.sidebar.selectbox("Sample Rate", [None, 44100, 48000], index=1)
-target_dBFS = st.sidebar.slider("Target dBFS", -40.0, 0.0, -20.0)
+audio_format = st.sidebar.selectbox("Audio Format", ["mp3", "wav", "aac"], index=["mp3", "wav", "aac"].index(config.get("audio_format", "mp3")))
+clip_duration = st.sidebar.slider("Clip Duration (seconds)", 10, 120, config.get("default_clip_duration_seconds", 40))
+normalize = st.sidebar.checkbox("Normalize Audio", value=config.get("normalize_audio", True))
+fade_in = st.sidebar.checkbox("Fade In", value=config.get("fade_in", False))
+fade_out = st.sidebar.checkbox("Fade Out", value=config.get("fade_out", False))
+sample_rate = st.sidebar.selectbox("Sample Rate", [None, 44100, 48000], index=[None, 44100, 48000].index(config.get("sample_rate", 44100)))
+target_dBFS = st.sidebar.slider("Target dBFS", -40.0, 0.0, config.get("target_dBFS", -20.0))
 
-# Title
+# UI title
 st.title("🎵 Audio Snippet Generator")
 
-# Tabs for different modes
+# Tabs
 tabs = st.tabs(["📄 Upload CSV", "✍️ Manual Entry", "🧩 Settings", "📜 Logs"])
 
-# Tab 1: Upload CSV
+# Output directory
+output_dir = Path(config.get("output_dir", "./output")).expanduser()
+output_dir.mkdir(parents=True, exist_ok=True)
+
+# Helper to update runtime config
+def update_runtime_config():
+    config["audio_format"] = audio_format
+    config["default_clip_duration_seconds"] = clip_duration
+    config["normalize_audio"] = normalize
+    config["fade_in"] = fade_in
+    config["fade_out"] = fade_out
+    config["sample_rate"] = sample_rate
+    config["target_dBFS"] = target_dBFS
+
+# === Tab 1: Upload CSV ===
 with tabs[0]:
     st.subheader("Upload CSV File")
-    uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
-    
-    if uploaded_file:
-        st.success("CSV uploaded!")
-        st.button("Start Processing")
-        st.progress(0)  # Placeholder
+    uploaded_csv = st.file_uploader("Choose a CSV file", type="csv")
+    if uploaded_csv:
+        temp_csv_path = Path(tempfile.mkstemp(suffix=".csv")[1])
+        with open(temp_csv_path, "wb") as f:
+            f.write(uploaded_csv.read())
 
-# Tab 2: Manual Entry
+        if st.button("Start CSV Processing"):
+            update_runtime_config()
+            with st.spinner("Processing..."):
+                process_csv(temp_csv_path, output_dir)
+            st.success("CSV processed successfully.")
+
+# === Tab 2: Manual Entry ===
 with tabs[1]:
-    st.subheader("Enter Track Details")
+    st.subheader("Manual Song Entry")
     col1, col2 = st.columns(2)
     with col1:
         first_name = st.text_input("First Name")
         last_name = st.text_input("Last Name")
     with col2:
-        song_query = st.text_input("Song Title / YouTube Search")
+        song_query = st.text_input("YouTube Song Title or Search")
         start_time = st.text_input("Start Time (MM:SS)", "00:00")
 
-    if st.button("Process This Entry"):
-        st.info("This is where processing would start...")
+    if st.button("Process Entry"):
+        if not all([first_name, last_name, song_query, start_time]):
+            st.error("Please fill in all fields.")
+        else:
+            update_runtime_config()
+            temp_row_path = Path(tempfile.mkstemp(suffix=".csv")[1])
+            with open(temp_row_path, "w", encoding="utf-8") as f:
+                f.write(";".join(config["csv_columns"].values()) + "\n")
+                f.write(f"{last_name};{first_name};{song_query};{start_time}\n")
+            with st.spinner("Processing..."):
+                process_csv(temp_row_path, output_dir)
+            st.success("Manual entry processed successfully.")
 
-# Tab 3: Settings Display (future: config editor)
+# === Tab 3: Settings Overview ===
 with tabs[2]:
-    st.subheader("🛠 Current Settings")
-    st.json({
-        "audio_format": audio_format,
-        "clip_duration": clip_duration,
-        "normalize_audio": normalize,
-        "fade_in": fade_in,
-        "fade_out": fade_out,
-        "sample_rate": sample_rate,
-        "target_dBFS": target_dBFS,
-    })
+    st.subheader("🧩 Runtime Settings")
+    st.json(config)
 
-# Tab 4: Log Output
+# === Tab 4: Log Viewer ===
 with tabs[3]:
-    st.subheader("🔍 Log Output")
-    st.text_area("Logs", "No logs yet...", height=200)
+    st.subheader("📜 Logs")
+    log_file = Path(config.get("log_file", "processes.log"))
+    if log_file.exists():
+        with open(log_file, "r", encoding="utf-8") as f:
+            st.text_area("Log Output", f.read(), height=300)
+    else:
+        st.info("No logs yet.")
