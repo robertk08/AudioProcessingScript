@@ -2,3 +2,4 @@ streamlit
 pydub
 tqdm
 ffmpeg-python
+pyaudioop
