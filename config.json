@@ -1,5 +1,4 @@
 {
-  "config_version": "1.0",
   "output_dir": "/Users/robertkrause/Desktop/AudioFiles",
   "log_filename": "processes.log",
   "overwrite": true,
