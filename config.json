@@ -1,26 +1,33 @@
 {
-  "output_dir": "~/Desktop/AudioFiles",
-  "csv_file": "testdata.csv",
+  "config_version": "1.0",
+  "output_dir": "/Users/robertkrause/Desktop/AudioFiles",
+  "log_filename": "processes.log",
+  "overwrite": true,
+  "parallel_workers": 15,
   "default_clip_duration_seconds": 40,
-  "log_file": "processes.log",
   "max_download_retries": 3,
   "retry_delay_seconds": 5,
-  "normalize_audio": true,
-  "overwrite_existing_files": true,
-  "audio_format": "mp3",
-  "csv_delimiter": ";",
-  "csv_columns": {
-    "name": "Name",
-    "surname": "Nachname",
-    "song": "Lied (Titel & Künstler)",
-    "start_time": "Startzeit (Minute/Sekunde)"
+  
+  "audio_settings": {
+    "format": "mp3",
+    "bitrate": "320k",
+    "sample_rate": 44100,
+    "target_dBFS": -20.0,
+    "fade_in": true,
+    "fade_in_duration_ms": 5000,
+    "fade_out": true,
+    "fade_out_duration_ms": 15000,
+    "normalize": true
   },
-  "fade_in": true,
-  "fade_in_duration_ms": 5000,
-  "fade_out": true,
-  "fade_out_duration_ms": 15000,
-  "audio_bitrate": "320k",
-  "sample_rate": 44100,
-  "target_dBFS": -20.0,
-  "parallel_workers": 15
+  
+  "csv_settings": {
+    "file": "testdata.csv",
+    "delimiter": ";",
+    "columns": {
+      "name": "Name",
+      "surname": "Nachname",
+      "song": "Lied (Titel & Künstler)",
+      "start_time": "Startzeit (Minute/Sekunde)"
+    }
+  }
 }

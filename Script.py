@@ -14,6 +14,8 @@ def load_config(path="config.json"):
         return json.load(f)
 
 config = load_config()
+csv_settings = config.get("csv_settings", {})
+audio_settings = config.get("audio_settings", {})
 
 # Convert timestamp string (MM:SS) to milliseconds
 def timestamp_to_ms(ts):
@@ -27,8 +29,8 @@ def timestamp_to_ms(ts):
 # Download a song from YouTube using yt-dlp with retries
 def download_song(query, temp_path):
     max_retries = config.get("max_download_retries", 3)
-    retry_delay = config.get("download_retry_delay", 5)
-    audio_format = config.get("audio_format", "mp3")
+    retry_delay = config.get("retry_delay_seconds", 5)
+    audio_format = audio_settings.get("format", "mp3")
 
     command = [
         "yt-dlp",
@@ -52,14 +54,14 @@ def download_song(query, temp_path):
 # Trim and process the downloaded audio clip according to config settings
 def trim_song(input_path, output_path, start_time):
     duration_sec = config.get("default_clip_duration_seconds", 30)
-    normalize = config.get("normalize_audio", True)
-    fade_in_enabled = config.get("fade_in", False)
-    fade_in_duration = config.get("fade_in_duration_ms", 0)
-    fade_out_enabled = config.get("fade_out", False)
-    fade_out_duration = config.get("fade_out_duration_ms", 0)
-    audio_format = config.get("audio_format", "mp3")
-    bitrate = config.get("audio_bitrate", None)
-    sample_rate = config.get("sample_rate", None)
+    normalize = audio_settings.get("normalize", True)
+    fade_in_enabled = audio_settings.get("fade_in", False)
+    fade_in_duration = audio_settings.get("fade_in_duration_ms", 0)
+    fade_out_enabled = audio_settings.get("fade_out", False)
+    fade_out_duration = audio_settings.get("fade_out_duration_ms", 0)
+    audio_format = audio_settings.get("format", "mp3")
+    bitrate = audio_settings.get("bitrate", None)
+    sample_rate = audio_settings.get("sample_rate", None)
 
     start_ms = timestamp_to_ms(start_time)
     if start_ms is None:
@@ -102,20 +104,20 @@ def trim_song(input_path, output_path, start_time):
 
 # Normalize audio to target dBFS level
 def match_target_amplitude(sound):
-    target_dBFS = config.get("target_dBFS", -20.0)
+    target_dBFS = audio_settings.get("target_dBFS", -20.0)
     change_in_dBFS = target_dBFS - sound.dBFS
     return sound.apply_gain(change_in_dBFS)
 
 # Process a single CSV row: download, trim, and save the audio clip
 def process_row(row, output_dir):
-    csv_columns = config["csv_columns"]
-    audio_format = config.get("audio_format", "mp3")
-    overwrite_existing_files = config.get("overwrite_existing_files", False)
+    csv_columns = csv_settings.get("columns", {})
+    audio_format = audio_settings.get("format", "mp3")
+    overwrite_existing_files = config.get("overwrite", False)
 
-    first_name = row.get(csv_columns["name"], "").strip()
-    last_name = row.get(csv_columns["surname"], "").strip()
-    song = row.get(csv_columns["song"], "").strip()
-    start_time = row.get(csv_columns["start_time"], "").strip()
+    first_name = row.get(csv_columns.get("name", ""), "").strip()
+    last_name = row.get(csv_columns.get("surname", ""), "").strip()
+    song = row.get(csv_columns.get("song", ""), "").strip()
+    start_time = row.get(csv_columns.get("start_time", ""), "").strip()
 
     # Skip rows with missing essential data
     if not first_name or not last_name or not song or not start_time:
@@ -154,7 +156,7 @@ def process_row(row, output_dir):
 # Process the entire CSV file in parallel using threads
 def process_csv(csv_path, output_dir, progress=None):
     # Retrieve CSV delimiter and parallelism settings from config
-    delimiter = config.get("csv_delimiter", ",")
+    delimiter = csv_settings.get("delimiter", ",")
     max_workers = config.get("parallel_workers", 4)
 
     with open(csv_path, newline='', encoding="utf-8") as file:
@@ -177,8 +179,8 @@ def process_csv(csv_path, output_dir, progress=None):
         future_to_row = {executor.submit(process_row, row, output_dir): row for row in rows}
         for future in as_completed(future_to_row):
             row = future_to_row[future]
-            first_name = row.get(config["csv_columns"]["name"], "").strip()
-            last_name = row.get(config["csv_columns"]["surname"], "").strip()
+            first_name = row.get(csv_settings.get("columns", {}).get("name", ""), "").strip()
+            last_name = row.get(csv_settings.get("columns", {}).get("surname", ""), "").strip()
             filename_base = f"{last_name}, {first_name}" if last_name or first_name else "Unknown"
             tqdm.write(f"Processing: {filename_base}")
             try:
@@ -195,7 +197,7 @@ def process_csv(csv_path, output_dir, progress=None):
 
 # Setup logging configuration to file
 def setup_logging():
-    log_file = config.get("log_file", "process.log")
+    log_file = config.get("log_filename", "process.log")
     # Clear existing log file content
     with open(log_file, "w", encoding="utf-8") as f:
         f.write("")
@@ -211,5 +213,5 @@ if __name__ == "__main__":
 
     setup_logging()
 
-    csv_file = config.get("csv_file", "testdata.csv")
+    csv_file = csv_settings.get("file", "testdata.csv")
     process_csv(csv_file, output_dir)

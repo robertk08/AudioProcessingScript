@@ -32,7 +32,6 @@ A Python script that automates downloading, trimming, and exporting audio clips 
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp)  
 - [pydub](https://github.com/jiaaro/pydub)  
 - [tqdm](https://github.com/tqdm/tqdm)  
-- [ffmpeg-python](https://github.com/kkroening/ffmpeg-python)  
 - [streamlit](https://streamlit.io/)  
 - [ffmpeg](https://ffmpeg.org/) must be available in your system PATH  
 
@@ -53,41 +52,48 @@ All Python dependencies are listed in `requirements.txt`.
 
 ## Configuration
 
-All settings are stored in `config.json`. Key options include:
+All settings are stored in `config.json`. Key sections include:
 
+### General
 - `output_dir` (string): Directory to save processed clips.  
-- `csv_file` (string): CSV filename in project root.  
-- `csv_delimiter` (string): Character to separate columns (e.g., `;` or `,`).  
-- `csv_columns` (object): Map logical fields to your CSV headers:
-  - `name`: First name column header  
-  - `surname`: Last name column header  
-  - `song`: Song title & artist column header  
-  - `start_time`: Clip start time column header  
+- `log_filename` (string): Name of the output log file.  
+- `overwrite` (bool): Overwrite existing outputs or skip.  
+- `parallel_workers` (int): Number of concurrent threads.  
 - `default_clip_duration_seconds` (int): Length of each clip in seconds.  
-- `audio_format` (string): Output format (`mp3`, `wav`).  
-- `audio_bitrate` (string): Bitrate for MP3 *only for mp3* (e.g., `192k`).  
-- `sample_rate` (int): Output sample rate in Hz *only for wav* (e.g., `44100`).  
-- `fade_in` / `fade_out` (bool): Apply fade effects.  
-- `fade_in_duration_ms` / `fade_out_duration_ms` (int): Fade durations in milliseconds.  
-- `normalize_audio` (bool): Enable volume normalization.  
-- `target_dBFS` (float): Target normalization level in dBFS (e.g., `-20.0`).  
 - `max_download_retries` (int): Number of download attempts.  
 - `retry_delay_seconds` (int): Delay between retries.  
-- `overwrite_existing_files` (bool): Overwrite existing outputs or skip.  
-- `parallel_workers` (int, optional): Number of concurrent threads (if set).
+- `config_version` (string): Optional config version identifier.
+
+### Audio Settings (`audio_settings`)
+- `format` (string): Output format (`mp3`, `wav`).  
+- `bitrate` (string): Bitrate for MP3 (e.g., `192k`).  
+- `sample_rate` (int): Output sample rate in Hz (e.g., `44100`).  
+- `target_dBFS` (float): Target normalization level in dBFS.  
+- `fade_in` / `fade_out` (bool): Enable fade effects.  
+- `fade_in_duration_ms` / `fade_out_duration_ms` (int): Fade durations in ms.  
+- `normalize` (bool): Enable volume normalization.
+
+### CSV Settings (`csv_settings`)
+- `file` (string): CSV filename in the project root.  
+- `delimiter` (string): Column separator character (e.g., `;`).  
+- `columns` (object): Maps internal names to CSV headers:
+  - `name`: e.g., `Name`  
+  - `surname`: e.g., `Nachname`  
+  - `song`: e.g., `Lied (Titel & Künstler)`  
+  - `start_time`: e.g., `Startzeit (Minute/Sekunde)`
 
 *Tip:* Adjust these values to fine-tune performance and output quality.
 
 ## CSV Format
 
-Your CSV should include headers matching the values in `csv_columns`, for example:
+Your CSV should include headers matching the values in `csv_settings.columns`, for example:
 
 ```csv
-First Name;Last Name;Song (Title & Artist);Start Time (Minute/Second)
-Lena ;Miller;Imagine Dragons - Believer;00:23
+Name;Nachname;Lied (Titel & Künstler);Startzeit (Minute/Sekunde)
+Lena;Miller;Imagine Dragons - Believer;00:23
 ```
 
-- **Delimiter** must match `csv_delimiter`.  
+- **Delimiter** must match `csv_settings.delimiter`.  
 - **Start times** in `MM:SS` format.
 
 ## Usage
@@ -107,7 +113,7 @@ Lena ;Miller;Imagine Dragons - Believer;00:23
 
 ## Logging
 
-- Progress and errors are logged to the file specified in `log_file` (default: `process.log`).  
+- Progress and errors are logged to the file specified in `log_filename` (default: `process.log`).  
 - Each run clears the previous log, so you start with a fresh log on every execution.
 - Logs now include detailed timestamps and success markers for easier debugging and tracking.
 

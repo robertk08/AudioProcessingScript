@@ -1,4 +1,3 @@
 streamlit
 pydub
 tqdm
-ffmpeg-python

@@ -1,10 +1,37 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Logs
 *.log
+
+# Virtual environments
 env/
 venv/
-.devcontainer/
 .venv/
+
+# Editor/IDE folders
 .vscode/
+.idea/
+
+# macOS
 .DS_Store
+
+# Containers & remote development
+.devcontainer/
+
+# Type checking
+.mypy_cache/
+
+# Testing
+.pytest_cache/
+
+# Packaging
+build/
+dist/
+*.egg-info/
+
+# Misc
+*.bak
+*.swp
