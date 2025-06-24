@@ -79,7 +79,14 @@ with tabs[0]:
             status_msg.info("⏳ Starting CSV processing...")
 
             # Pass edited config down or parts of it if needed in process_csv
-            process_csv(temp_csv_path, output_path, progress=progress)
+            process_csv(
+                temp_csv_path,
+                output_path,
+                config=config,
+                csv_settings=config.get("csv_settings", {}),
+                audio_settings=config.get("audio_settings", {}),
+                progress=progress
+            )
 
             progress.progress(100, text="Complete")
             status_msg.success("✅ CSV processed successfully.")
@@ -98,18 +105,25 @@ with tabs[1]:
         if not all([first_name, last_name, song_query, start_time]):
             st.error("Please fill in all fields.")
         else:
-            output_path = Path(edited_config.get("output_dir", "./output")).expanduser()
+            output_path = Path(config.get("output_dir", "./output")).expanduser()
             output_path.mkdir(parents=True, exist_ok=True)
 
             temp_row_path = Path(tempfile.mkstemp(suffix=".csv")[1])
             with open(temp_row_path, "w", encoding="utf-8") as f:
-                f.write(";".join(edited_config["csv_settings"]["columns"].values()) + "\n")
+                f.write(";".join(config["csv_settings"]["columns"].values()) + "\n")
                 f.write(f"{first_name};{last_name};{song_query};{start_time}\n")
 
             progress = st.progress(0, text="Processing Entry...")
             status_msg.info("⏳ Starting manual entry processing...")
 
-            process_csv(temp_row_path, output_path, progress=progress)
+            process_csv(
+                temp_csv_path,
+                output_path,
+                config=config,
+                csv_settings=config.get("csv_settings", {}),
+                audio_settings=config.get("audio_settings", {}),
+                progress=progress
+            )
 
             progress.progress(100, text="Complete")
             status_msg.success("✅ Manual entry processed successfully.")
@@ -118,17 +132,17 @@ with tabs[2]:
     st.subheader("⚙️ Configuration Editor (all options editable)")
 
     # Deepcopy config so we can edit safely
-    edited_config = config_editor_ui(deepcopy(config))
+    config = config_editor_ui(deepcopy(config))
 
     st.markdown("---")
     st.subheader("📄 Current Configuration (auto-updated)")
 
     # Show updated config JSON pretty-printed
-    st.json(edited_config)
+    st.json(config)
 
 with tabs[3]:
     st.subheader("📜 Logs")
-    log_file_path = Path(edited_config.get("log_filename", "processes.log"))
+    log_file_path = Path(config.get("log_filename", "processes.log"))
     if log_file_path.exists():
         with open(log_file_path, "r", encoding="utf-8") as f:
             st.text_area("Log Output", f.read(), height=300)
