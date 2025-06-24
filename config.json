@@ -1,5 +1,5 @@
 {
-  "output_dir": "/Users/robertkrause/Documents/Projekte/Abi25Audio",
+  "output_dir": "~/Desktop/AudioFiles",
   "csv_file": "testdata.csv",
   "default_clip_duration_seconds": 40,
   "log_file": "processes.log",

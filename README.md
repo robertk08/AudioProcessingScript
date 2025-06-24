@@ -11,8 +11,7 @@ A Python script that automates downloading, trimming, and exporting audio clips 
 5. [CSV Format](#csv-format)  
 6. [Usage](#usage)  
 7. [Logging](#logging)  
-8. [Advanced Options](#advanced-options)  
-9. [Support & Contribution](#support--contribution)
+8. [Support & Contribution](#support--contribution)
 
 ---
 
@@ -23,24 +22,34 @@ A Python script that automates downloading, trimming, and exporting audio clips 
 - Configurable clip duration, fade in/out, normalization, sample rate, bitrate, and more  
 - Parallel processing for faster batch operations  
 - Flexible CSV column mapping and delimiter settings  
+- Streamlit-based user interface for interactive use
+- Visual progress bar and success status
+- Automatic logging and live feedback during batch processing
 
 ## Requirements
 
 - Python 3.7 or higher  
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp)  
 - [pydub](https://github.com/jiaaro/pydub)  
-- [ffmpeg](https://ffmpeg.org/) in your system PATH  
+- [tqdm](https://github.com/tqdm/tqdm)  
+- [ffmpeg-python](https://github.com/kkroening/ffmpeg-python)  
+- [streamlit](https://streamlit.io/)  
+- [ffmpeg](https://ffmpeg.org/) must be available in your system PATH  
+
+All Python dependencies are listed in `requirements.txt`.
 
 ## Installation
 
 1. **Install Python** if not already installed.  
 2. **Install dependencies**:
    ```bash
-   pip install yt-dlp pydub
+   pip install -r requirements.txt
    ```
 3. **Install ffmpeg**:
    - macOS (Homebrew): `brew install ffmpeg`  
    - Windows: Download from https://ffmpeg.org/download.html and add `ffmpeg/bin` to your PATH.  
+
+*Note:* `ffmpeg` must be available in your system `PATH` for the scripts to function.
 
 ## Configuration
 
@@ -89,19 +98,18 @@ Lena ;Miller;Imagine Dragons - Believer;00:23
    ```bash
    python Script.py
    ```
-4. Check the output directory for processed clips.  
+4. (Optional) Launch the Streamlit interface:
+   ```bash
+   streamlit run UI.py
+   ```
+5. Use the web interface to select your CSV and configure the run interactively.
+6. Check the output directory for processed clips.  
 
 ## Logging
 
-- Progress and errors are logged to the file specified in `log_file` (default: `process_log.txt`).  
+- Progress and errors are logged to the file specified in `log_file` (default: `process.log`).  
 - Each run clears the previous log, so you start with a fresh log on every execution.
-
-## Advanced Options
-
-- **Dry-run mode** (not implemented yet): Simulate processing without downloads.  
-- **Crossfade**: Merge multiple clips with smooth transitions.  
-- **GUI/Web interface**: Future enhancements for user-friendly control.  
-- **Integration**: Connect to Google Sheets, FTP upload, or cloud storage sync.
+- Logs now include detailed timestamps and success markers for easier debugging and tracking.
 
 ## Support & Contribution
 
