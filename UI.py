@@ -1,28 +1,26 @@
 import streamlit as st
 import tempfile
-import os
 from pathlib import Path
 from copy import deepcopy
 from helpers.process_csv import process_csv
-from helpers.setup import setup_logging, load_config
+from helpers.setup import setup_logging, load_config, prepare_output_directory
 
 # Setup
 config = load_config()
+config["cloud"] = config.get("cloud", True)
 setup_logging(config)
-st.set_page_config(page_title="🎧 Audio Studio", layout="wide")
 
-# Header
+st.set_page_config(page_title="🎧 Audio Studio", layout="wide")
 st.title("🎧 Audio Snippet Generator")
 st.markdown("A simple tool to process audio snippets from CSV files or manual input.")
 
-# Sidebar: Settings
 st.sidebar.header("⚙️ Settings")
 st.sidebar.markdown("Configure the tool behavior below:")
 
 def config_editor_ui(cfg, prefix=""):
     updated_cfg = {}
     for key, val in cfg.items():
-        if prefix == "csv_settings." and key == "file" or key == "output_dir":
+        if prefix == "csv_settings." and key == "file" or key == "output_dir" or key == "cloud":
             continue
         key_name = f"{prefix}{key}"
         if isinstance(val, dict):
@@ -61,9 +59,6 @@ with tab1:
         help="Enter the path where processed audio files should be saved."
     )
 
-    if not os.path.isdir(output_dir):
-        st.warning("⚠️ The provided path does not exist or is not a directory.")
-
     uploaded_csv = st.file_uploader("📂 Choose a CSV file", type="csv")
 
     if uploaded_csv:
@@ -72,7 +67,7 @@ with tab1:
             f.write(uploaded_csv.read())
 
         if st.button("▶️ Start CSV Processing"):
-            Path(output_dir).expanduser().mkdir(parents=True, exist_ok=True)
+            prepare_output_directory(config)
             progress = st.progress(0, text="Processing CSV...")
             st.info("⏳ Processing started...")
 
@@ -88,45 +83,45 @@ with tab1:
             progress.progress(100, text="Complete")
             st.success("✅ CSV processed successfully.")
 
-# Tab 2: Manual Entry
-with tab2:
-    st.header("✍️ Manual Song Entry")
-    st.markdown("Enter a song manually to process it directly.")
+# # Tab 2: Manual Entry
+# with tab2:
+#     st.header("✍️ Manual Song Entry")
+#     st.markdown("Enter a song manually to process it directly.")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        first_name = st.text_input("First Name")
-        last_name = st.text_input("Last Name")
-    with col2:
-        song_query = st.text_input("YouTube Song Title or Search")
-        start_time = st.text_input("Start Time (MM:SS)", "00:00")
+#     col1, col2 = st.columns(2)
+#     with col1:
+#         first_name = st.text_input("First Name")
+#         last_name = st.text_input("Last Name")
+#     with col2:
+#         song_query = st.text_input("YouTube Song Title or Search")
+#         start_time = st.text_input("Start Time (MM:SS)", "00:00")
 
-    if st.button("▶️ Process Manual Entry"):
-        if not all([first_name, last_name, song_query, start_time]):
-            st.error("Please fill in all fields.")
-        else:
-            output_path = Path(config.get("output_dir", "./output")).expanduser()
-            output_path.mkdir(parents=True, exist_ok=True)
+#     if st.button("▶️ Process Manual Entry"):
+#         if not all([first_name, last_name, song_query, start_time]):
+#             st.error("Please fill in all fields.")
+#         else:
+#             output_path = Path(config.get("output_dir", "./output")).expanduser()
+#             output_path.mkdir(parents=True, exist_ok=True)
 
-            temp_row_path = Path(tempfile.mkstemp(suffix=".csv")[1])
-            with open(temp_row_path, "w", encoding="utf-8") as f:
-                f.write(";".join(config["csv_settings"]["columns"].values()) + "\n")
-                f.write(f"{first_name};{last_name};{song_query};{start_time}\n")
+#             temp_row_path = Path(tempfile.mkstemp(suffix=".csv")[1])
+#             with open(temp_row_path, "w", encoding="utf-8") as f:
+#                 f.write(";".join(config["csv_settings"]["columns"].values()) + "\n")
+#                 f.write(f"{first_name};{last_name};{song_query};{start_time}\n")
 
-            progress = st.progress(0, text="Processing Entry...")
-            st.info("⏳ Processing started...")
+#             progress = st.progress(0, text="Processing Entry...")
+#             st.info("⏳ Processing started...")
 
-            process_csv(
-                temp_row_path,
-                output_path,
-                config=config,
-                csv_settings=config.get("csv_settings", {}),
-                audio_settings=config.get("audio_settings", {}),
-                progress=progress
-            )
+#             process_csv(
+#                 temp_row_path,
+#                 output_path,
+#                 config=config,
+#                 csv_settings=config.get("csv_settings", {}),
+#                 audio_settings=config.get("audio_settings", {}),
+#                 progress=progress
+#             )
 
-            progress.progress(100, text="Complete")
-            st.success("✅ Manual entry processed successfully.")
+#             progress.progress(100, text="Complete")
+#             st.success("✅ Manual entry processed successfully.")
 
 # Tab 3: Logs
 with tab3:

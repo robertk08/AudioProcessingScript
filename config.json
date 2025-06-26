@@ -1,6 +1,8 @@
 {
-  "output_dir": "/Users/robertkrause/Desktop/AudioFiles",
+  "output_dir": "~/Desktop/AudioFiles",
   "log_filename": "processes.log",
+  "filename_template": "{2}, {1}, {3}",
+  "cloud": false,
   "overwrite": true,
   "parallel_workers": 15,
   "default_clip_duration_seconds": 40,
@@ -20,7 +22,7 @@
   },
   
   "csv_settings": {
-    "file": "testdata.csv",
+    "file": "tests/shortertestdata.csv",
     "delimiter": ";",
     "columns": {
       "name": "Name",
