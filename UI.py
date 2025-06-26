@@ -1,87 +1,84 @@
 import streamlit as st
 import tempfile
-import json
+import os
 from pathlib import Path
 from copy import deepcopy
 from helpers.process_csv import process_csv
 from helpers.setup import setup_logging, load_config
 
-# Load and setup
+# Setup
 config = load_config()
 setup_logging(config)
+st.set_page_config(page_title="🎧 Audio Studio", layout="wide")
 
-st.set_page_config(page_title="🎧 Audio Studio", layout="centered")
+# Header
+st.title("🎧 Audio Snippet Generator")
+st.markdown("A simple tool to process audio snippets from CSV files or manual input.")
 
-status_msg = st.empty()
-progress = None
-
-st.title("🎵 Audio Snippet Generator")
-
-tabs = st.tabs(["📄 Upload CSV", "✍️ Manual Entry", "⚙️ Settings", "📜 Logs"])
+# Sidebar: Settings
+st.sidebar.header("⚙️ Settings")
+st.sidebar.markdown("Configure the tool behavior below:")
 
 def config_editor_ui(cfg, prefix=""):
     updated_cfg = {}
     for key, val in cfg.items():
-        # Skip CSV input file setting since it's handled in the Upload CSV tab
-        if prefix == "csv_settings." and key == "file" or key == "output_dir" :
+        if prefix == "csv_settings." and key == "file" or key == "output_dir":
             continue
         key_name = f"{prefix}{key}"
         if isinstance(val, dict):
-            st.markdown(f"### {key.replace('_', ' ').title()}")
+            st.sidebar.markdown(f"**{key.replace('_', ' ').title()}**")
             updated_val = config_editor_ui(val, prefix=key_name + ".")
             updated_cfg[key] = updated_val
         elif isinstance(val, bool):
-            updated_cfg[key] = st.checkbox(key.replace('_', ' ').title(), value=val, key=key_name)
+            updated_cfg[key] = st.sidebar.checkbox(key.replace('_', ' ').title(), value=val, key=key_name)
         elif isinstance(val, int):
-            updated_cfg[key] = st.number_input(key.replace('_', ' ').title(), value=val, step=1, key=key_name)
+            updated_cfg[key] = st.sidebar.number_input(key.replace('_', ' ').title(), value=val, step=1, key=key_name)
         elif isinstance(val, float):
-            updated_cfg[key] = st.number_input(key.replace('_', ' ').title(), value=val, format="%.2f", key=key_name)
+            updated_cfg[key] = st.sidebar.number_input(key.replace('_', ' ').title(), value=val, format="%.2f", key=key_name)
         elif isinstance(val, str):
-            # Special case for audio format - restrict choices to wav and mp3
             if key == "format":
-                updated_cfg[key] = st.selectbox("Audio Format", ["mp3", "wav"], index=["mp3", "wav"].index(val), key=key_name)
+                updated_cfg[key] = st.sidebar.selectbox("Audio Format", ["mp3", "wav"], index=["mp3", "wav"].index(val), key=key_name)
             elif "dir" in key.lower() or "file" in key.lower():
-                # File path input
-                updated_cfg[key] = st.text_input(key.replace('_', ' ').title(), value=val, key=key_name)
+                updated_cfg[key] = st.sidebar.text_input(key.replace('_', ' ').title(), value=val, key=key_name)
             else:
-                updated_cfg[key] = st.text_input(key.replace('_', ' ').title(), value=val, key=key_name)
+                updated_cfg[key] = st.sidebar.text_input(key.replace('_', ' ').title(), value=val, key=key_name)
         else:
-            # Fallback: show as text input
-            updated_cfg[key] = st.text_input(key.replace('_', ' ').title(), value=str(val), key=key_name)
+            updated_cfg[key] = st.sidebar.text_input(key.replace('_', ' ').title(), value=str(val), key=key_name)
     return updated_cfg
 
-with tabs[0]:
-    
-    import os  # add this at the top of your file
+config = config_editor_ui(deepcopy(config))
 
-    st.markdown("### Output Directory")
+tab1, tab2, tab3 = st.tabs(["📄 Upload CSV", "✍️ Manual Entry", "📜 Logs"])
+
+# Tab 1: CSV Upload
+with tab1:
+    st.header("📄 Upload CSV")
+    st.markdown("Upload a CSV file to process multiple entries at once.")
+
     output_dir = st.text_input(
-        "Enter output folder path",
+        "📁 Output Directory",
         value=str(Path(config.get("output_dir", "./output")).expanduser()),
-        help="Paste or type the path to the folder where audio files will be saved"
+        help="Enter the path where processed audio files should be saved."
     )
 
     if not os.path.isdir(output_dir):
         st.warning("⚠️ The provided path does not exist or is not a directory.")
-   
-    uploaded_csv = st.file_uploader("Choose a CSV file", type="csv")
+
+    uploaded_csv = st.file_uploader("📂 Choose a CSV file", type="csv")
 
     if uploaded_csv:
         temp_csv_path = Path(tempfile.mkstemp(suffix=".csv")[1])
         with open(temp_csv_path, "wb") as f:
             f.write(uploaded_csv.read())
 
-        if st.button("Start CSV Processing"):
-            output_path = Path(output_dir).expanduser()
-            output_path.mkdir(parents=True, exist_ok=True)
-
+        if st.button("▶️ Start CSV Processing"):
+            Path(output_dir).expanduser().mkdir(parents=True, exist_ok=True)
             progress = st.progress(0, text="Processing CSV...")
-            status_msg.info("⏳ Starting CSV processing...")
+            st.info("⏳ Processing started...")
 
-            # Pass edited config down or parts of it if needed in process_csv
             process_csv(
                 temp_csv_path,
-                output_path,
+                Path(output_dir).expanduser(),
                 config=config,
                 csv_settings=config.get("csv_settings", {}),
                 audio_settings=config.get("audio_settings", {}),
@@ -89,10 +86,13 @@ with tabs[0]:
             )
 
             progress.progress(100, text="Complete")
-            status_msg.success("✅ CSV processed successfully.")
+            st.success("✅ CSV processed successfully.")
 
-with tabs[1]:
-    st.subheader("Manual Song Entry")
+# Tab 2: Manual Entry
+with tab2:
+    st.header("✍️ Manual Song Entry")
+    st.markdown("Enter a song manually to process it directly.")
+
     col1, col2 = st.columns(2)
     with col1:
         first_name = st.text_input("First Name")
@@ -101,7 +101,7 @@ with tabs[1]:
         song_query = st.text_input("YouTube Song Title or Search")
         start_time = st.text_input("Start Time (MM:SS)", "00:00")
 
-    if st.button("Process Entry"):
+    if st.button("▶️ Process Manual Entry"):
         if not all([first_name, last_name, song_query, start_time]):
             st.error("Please fill in all fields.")
         else:
@@ -114,10 +114,10 @@ with tabs[1]:
                 f.write(f"{first_name};{last_name};{song_query};{start_time}\n")
 
             progress = st.progress(0, text="Processing Entry...")
-            status_msg.info("⏳ Starting manual entry processing...")
+            st.info("⏳ Processing started...")
 
             process_csv(
-                temp_csv_path,
+                temp_row_path,
                 output_path,
                 config=config,
                 csv_settings=config.get("csv_settings", {}),
@@ -126,25 +126,14 @@ with tabs[1]:
             )
 
             progress.progress(100, text="Complete")
-            status_msg.success("✅ Manual entry processed successfully.")
+            st.success("✅ Manual entry processed successfully.")
 
-with tabs[2]:
-    st.subheader("⚙️ Configuration Editor (all options editable)")
-
-    # Deepcopy config so we can edit safely
-    config = config_editor_ui(deepcopy(config))
-
-    st.markdown("---")
-    st.subheader("📄 Current Configuration (auto-updated)")
-
-    # Show updated config JSON pretty-printed
-    st.json(config)
-
-with tabs[3]:
-    st.subheader("📜 Logs")
+# Tab 3: Logs
+with tab3:
+    st.header("📜 Processing Logs")
     log_file_path = Path(config.get("log_filename", "processes.log"))
     if log_file_path.exists():
         with open(log_file_path, "r", encoding="utf-8") as f:
-            st.text_area("Log Output", f.read(), height=300)
+            st.text_area("📝 Log Output", f.read(), height=400)
     else:
-        st.info("No logs yet.")
+        st.info("No logs available.")

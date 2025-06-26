@@ -1,8 +1,3 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
 # Logs
 *.log
 
@@ -20,17 +15,6 @@ venv/
 
 # Containers & remote development
 .devcontainer/
-
-# Type checking
-.mypy_cache/
-
-# Testing
-.pytest_cache/
-
-# Packaging
-build/
-dist/
-*.egg-info/
 
 # Misc
 *.bak

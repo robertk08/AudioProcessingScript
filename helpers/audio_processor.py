@@ -19,9 +19,6 @@ def trim_song(input_path, output_path, start_time, config, audio_settings):
     sample_rate = audio_settings.get("sample_rate", None)
 
     start_ms = timestamp_to_ms(start_time)
-    if start_ms is None:
-        logging.error(f"Invalid start time: {start_time}")
-        return False
 
     try:
         audio = AudioSegment.from_file(input_path)
