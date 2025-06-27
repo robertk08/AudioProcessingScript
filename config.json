@@ -1,10 +1,10 @@
 {
-  "output_dir": "~/Desktop/AudioFiles",
+  "output_dir": "output",
   "log_filename": "processes.log",
   "filename_template": "{name}, {surname} ({song})",
 
-  "cloud": false,
-  "zip_output": false,
+  "cloud": true,
+  "zip_output": true,
   "zip_name": "audio_files",
   "overwrite": true,
 

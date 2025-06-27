@@ -13,7 +13,8 @@ A Python tool for batch downloading, trimming, and processing audio clips from Y
 5. [CSV Format](#csv-format)
 6. [Usage](#usage)
 7. [Logging](#logging)
-8. [Contributing & Support](#contributing--support)
+8. [Testing & Code Quality](#testing--code-quality)
+9. [Contributing & Support](#contributing--support)
 
 ---
 
@@ -21,12 +22,14 @@ A Python tool for batch downloading, trimming, and processing audio clips from Y
 
 - 🔍 Download audio from YouTube search results  
 - ✂️ Trim clips at specified start times  
-- ⚙️ Fully configurable clip settings (duration: 40s, format: MP3 @ 320k)  
-- 🎚️ Audio processing: normalization to -20 dBFS, fade in & out  
+- ⚙️ Fully configurable clip settings (duration, format, bitrate, sample rate, normalization, fade in/out)  
+- 🎚️ Audio processing: normalization to target dBFS, fade in & out  
 - 🚀 Parallel processing for fast batch handling  
 - 🖥️ Optional Streamlit-based UI for interactive control  
 - 📊 Visual progress bars & live success status  
-- 📝 Logging to `processes.log` with fresh logs per run
+- 📝 Logging to `processes.log` with fresh logs per run  
+- 🧑‍💻 Type hints and improved code quality for maintainability  
+- 🛡️ Robust error handling and configuration validation
 
 ---
 
@@ -67,6 +70,8 @@ All settings are managed in `config.json`. Key sections include:
 - `log_filename`: Log file name
 - `filename_template`: Template for output filenames
 - `cloud`: Enables cloud-related features (for UI; set to `false` for local use)
+- `zip_output`: If true, output files are zipped after processing
+- `zip_name`: Name of the output zip file
 - `overwrite`: Overwrite existing files if true
 - `parallel_workers`: Number of parallel processing jobs
 - `default_clip_duration_seconds`: Default duration for each audio clip
@@ -89,9 +94,9 @@ All settings are managed in `config.json`. Key sections include:
   ```json
   "columns": {
     "name": "Name",
-    "surname": "Surname",
-    "song": "Song (Title & Artist)",
-    "start_time": "Start Time (MM:SS)"
+    "surname": "Nachname",
+    "song": "Lied (Titel & Künstler)",
+    "start_time": "Startzeit (Minute/Sekunde)"
   }
   ```
 
@@ -103,12 +108,12 @@ All settings are managed in `config.json`. Key sections include:
 
 Your CSV file should have the following columns (headers can be customized in `config.json`):
 
-| Column Header             | Description                                                                                 |
-|--------------------------|---------------------------------------------------------------------------------------------|
-| **Name**                 | The person's first name. Used for naming and identification.                                |
-| **Surname**              | The person's last name. Used together with the first name for unique identification.        |
-| **Song (Title & Artist)**| The full song title and artist name. Used to search for the correct audio track.            |
-| **Start Time (MM:SS)**   | The time offset in the song where the clip should start. Format: minutes and seconds (e.g., 1:30). |
+| Column Header                  | Description                                                                                 |
+|------------------------------- |--------------------------------------------------------------------------------------------|
+| **Name**                       | The person's first name. Used for naming and identification.                               |
+| **Surname**                    | The person's last name. Used together with the first name for unique identification.       |
+| **Song (Title & Artist)**      | The full song title and artist name. Used to search for the correct audio track.           |
+| **Start Time (MM:SS)**         | The time offset in the song where the clip should start. Format: minutes and seconds (e.g., 1:30). |
 
 ---
 
@@ -142,8 +147,23 @@ Your CSV file should have the following columns (headers can be customized in `c
 
 ---
 
+## Testing & Code Quality
+
+- All core modules use **type hints** for better readability and maintainability.
+- The codebase is structured for easy testing and extension.
+- Linter errors are resolved; type: ignore is used only where necessary (e.g., for pydub slicing).
+- To add tests, use [pytest](https://docs.pytest.org/) and mock file/network operations as needed.
+
+---
+
 ## Contributing & Support
 
 - Found a bug? [Open an issue](https://github.com/robertk08/AudioProcessingScript/issues)
 - Want to improve the project? Submit a pull request!
 - Questions? Contact the author or contribute via the repository.
+
+---
+
+**Tip:**  
+For best results, keep your dependencies up to date and review the logs for any failed downloads or processing errors.  
+If you encounter issues with ffmpeg or yt-dlp, check your system PATH and ensure all dependencies are installed.
