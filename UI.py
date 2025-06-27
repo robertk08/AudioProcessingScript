@@ -10,7 +10,7 @@ st.title("🎧 Audio Snippet Generator")
 csv_file, output_dir, config, csv_settings, audio_settings = initialize()
 config["zip_output"] = True
 config["output_dir"] = "output"
-config["parallel_workers"] = 1
+config["parallel_workers"] = 6
 
 # Minimal settings
 with st.form("settings_form"):
