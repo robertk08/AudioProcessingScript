@@ -69,7 +69,6 @@ All settings are managed in `config.json`. Key sections include:
 - `output_dir`: Directory for processed audio files
 - `log_filename`: Log file name
 - `filename_template`: Template for output filenames
-- `cloud`: Enables cloud-related features (for UI; set to `false` for local use)
 - `zip_output`: If true, output files are zipped after processing
 - `zip_name`: Name of the output zip file
 - `overwrite`: Overwrite existing files if true
@@ -135,7 +134,6 @@ Your CSV file should have the following columns (headers can be customized in `c
    streamlit run UI.py
    ```
 3. Use the web interface to configure and launch processing jobs.
-   > **Note:** Set `cloud` to `false` in `config.json` for local UI operation.
 
 ---
 

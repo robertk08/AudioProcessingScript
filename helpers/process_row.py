@@ -65,18 +65,24 @@ def process_row(
     try:
         if not download_song(song, temp_path, config, audio_settings):
             logging.error(f"Download failed: {song}")
-            return None
+            return False
         downloaded_file: Path = Path(str(temp_path).replace("%(ext)s", audio_format))
-        if not trim_song(downloaded_file, final_path, start_time, config, audio_settings):
+        if not downloaded_file.exists():
+            logging.error(f"Downloaded file does not exist: {downloaded_file}")
+            return False
+        if downloaded_file.stat().st_size == 0:
+            logging.error(f"Downloaded file is empty: {downloaded_file}")
+            return False
+        try:
+            result = trim_song(downloaded_file, final_path, start_time, config, audio_settings)
+        except Exception as e:
+            logging.error(f"Exception in trim_song: {e}")
+            return False
+        if not result:
             logging.error(f"Trim failed: {final_path}")
-            return None
+            return False
         logging.info(f"Saved: {final_path}")
-        if downloaded_file.exists():
-            try:
-                downloaded_file.unlink()
-            except Exception as e:
-                logging.warning(f"Failed to delete temp file {downloaded_file}: {e}")
         return True
     except Exception as e:
         logging.error(f"Unexpected error in process_row: {e}")
-        return None
+        return False

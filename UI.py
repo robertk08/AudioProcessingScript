@@ -2,21 +2,14 @@ import streamlit as st
 import tempfile
 from pathlib import Path
 from helpers.process_csv import process_csv
-from helpers.setup import load_config, setup_logging, prepare_output_directory
+from helpers.setup import initialize
 
 st.set_page_config(page_title="Audio Snippet Generator", layout="centered")
 st.title("🎧 Audio Snippet Generator")
 
-# Load config and set cloud/zip_output to True
-config = load_config()
-config["cloud"] = True
+csv_file, output_dir, config, csv_settings, audio_settings = initialize()
 config["zip_output"] = True
 config["output_dir"] = "output"
-
-output_dir = Path(tempfile.gettempdir()) / "audioprocessing_output"
-log_file = output_dir / config.get("log_filename", "processes.log")
-zip_name = config.get("zip_name", "audio_files") + ".zip"
-zip_path = output_dir / zip_name
 
 # Minimal settings
 with st.form("settings_form"):
@@ -41,31 +34,29 @@ with st.form("settings_form"):
 uploaded_csv = st.file_uploader("Upload CSV file", type="csv")
 
 if uploaded_csv:
-    temp_csv_path = Path(tempfile.mkstemp(suffix=".csv")[1])
-    with open(temp_csv_path, "wb") as f:
-        f.write(uploaded_csv.read())
+    # Save uploaded file to a temp file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
+        tmp.write(uploaded_csv.read())
+        temp_csv_path = tmp.name
 
     if st.button("Process"):
-        # Prepare output dir and log
-        prepare_output_directory(config)
-        config["log_filename"] = str(log_file)
-        setup_logging(config)
         progress = st.progress(0, text="Processing CSV...")
         try:
             process_csv(
-                str(temp_csv_path),
+                temp_csv_path,
                 output_dir,
-                config=config,
-                csv_settings=config.get("csv_settings", {}),
-                audio_settings=config.get("audio_settings", {}),
-                progress=progress
+                config,
+                csv_settings,
+                audio_settings,
+                progress
             )
             progress.progress(100, text="Complete")
             st.success("Processing complete!")
         except Exception as e:
             st.error(f"Error: {e}")
 
-        # Download zip if available
+        zip_name = config['zip_name']+".zip"
+        zip_path = output_dir / zip_name
         if zip_path.exists():
             with open(zip_path, "rb") as f:
                 st.download_button(
@@ -77,7 +68,8 @@ if uploaded_csv:
         else:
             st.warning("No zip file found. Check your config and try again.")
 
-        # Show log
+        # Show log always if available
+        log_file = config.get("log_filename", "processes.log")
         if log_file.exists():
             with open(log_file, "r", encoding="utf-8") as f:
                 log_content = f.read()
@@ -87,6 +79,3 @@ if uploaded_csv:
                     st.info("Log file is empty.")
         else:
             st.info("No log file found.")
-
-st.markdown("---")
-st.caption("AudioProcessingScript | Streamlit UI")

@@ -1,7 +1,6 @@
 from pathlib import Path
 import logging
 import json
-import tempfile
 from typing import Dict, Any, Tuple
 from .utils import cleanup_files
 
@@ -31,8 +30,8 @@ def setup_logging(config: Dict[str, Any]) -> None:
 def prepare_output_directory(config: Dict[str, Any]) -> Path:
     output_dir_path: Path = Path(config.get("output_dir", "./output")).expanduser()
     output_dir_path.mkdir(parents=True, exist_ok=True)
-    if config.get("cloud", False) or config.get("overwrite", False):
-        cleanup_files(output_dir_path, {".webm", ".mp3", ".wav", ".zip"})
+    if config.get("overwrite", False):
+        cleanup_files(output_dir_path, {".webm", ".mp3", ".wav", ".zip", ".log"})
     return output_dir_path
 
 
