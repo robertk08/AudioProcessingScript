@@ -3,6 +3,7 @@ import tempfile
 from pathlib import Path
 from helpers.process_csv import process_csv
 from helpers.setup import initialize
+import os
 
 st.set_page_config(page_title="Audio Snippet Generator", layout="centered")
 st.title("🎧 Audio Snippet Generator")
@@ -40,6 +41,26 @@ if log_file.exists():
             st.text_area("Log Output", log_content, height=300)
         else:
             st.info("Log file is empty.")
+
+# After the log file section, add a section to list files in the output directory
+st.subheader("Files in Output Directory")
+output_files = []
+if isinstance(output_dir, (str, Path)):
+    output_dir_path = Path(output_dir)
+    if output_dir_path.exists() and output_dir_path.is_dir():
+        output_files = list(output_dir_path.iterdir())
+
+if output_files:
+    for file_path in output_files:
+        if file_path.is_file():
+            with open(file_path, "rb") as f:
+                st.download_button(
+                    label=f"Download {file_path.name}",
+                    data=f,
+                    file_name=file_path.name
+                )
+else:
+    st.info("No files found in the output directory.")
 
 uploaded_csv = st.file_uploader("Upload CSV file", type="csv")
 

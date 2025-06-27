@@ -24,10 +24,15 @@ def download_song(
     for attempt in range(1, max_retries + 1):
         try:
             logging.info(f"Attempting download: '{query}', attempt {attempt}")
-            subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, text=True)
+            logging.debug(f"Running command: {' '.join(command)}")
+            result = subprocess.run(command, check=True, capture_output=True, text=True)
+            logging.debug(f"yt-dlp stdout: {result.stdout}")
+            logging.debug(f"yt-dlp stderr: {result.stderr}")
             return True
         except subprocess.CalledProcessError as e:
             logging.warning(f"Download attempt {attempt} failed for '{query}': {e}")
+            logging.error(f"yt-dlp stdout: {e.stdout}")
+            logging.error(f"yt-dlp stderr: {e.stderr}")
             if attempt < max_retries:
                 time.sleep(retry_delay)
             else:
