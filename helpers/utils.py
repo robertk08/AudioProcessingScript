@@ -1,47 +1,35 @@
 import logging
 import zipfile
 from pathlib import Path
+from typing import Optional, Set, Dict, Any
 
 
-def timestamp_to_ms(ts):
+def timestamp_to_ms(timestamp: str) -> Optional[int]:
     try:
-        parts = ts.strip().split(":")
-        if len(parts) != 2:
-            raise ValueError("Expected format MM:SS")
-        minutes, seconds = map(int, parts)
+        minutes, seconds = map(int, timestamp.strip().split(":"))
+        if minutes < 0 or seconds < 0 or seconds >= 60:
+            raise ValueError
         return (minutes * 60 + seconds) * 1000
-    except (ValueError, IndexError) as e:
-        logging.error(f"Invalid start time '{ts}': {e}")
+    except Exception:
+        logging.error(f"Invalid start time '{timestamp}'")
         return None
 
 
-def cleanup_files(output_dir: Path, extensions: set):
-    logging.info(f"Cleaning up files in {output_dir} with extensions: {extensions}")
-    for file in output_dir.iterdir():
-        if file.suffix.lower() in extensions and file.is_file():
+def cleanup_files(directory: Path, extensions: Set[str]) -> None:
+    for file in directory.iterdir():
+        if file.is_file() and file.suffix.lower() in extensions:
             try:
                 file.unlink()
             except Exception as e:
                 logging.warning(f"Failed to delete {file.name}: {e}")
 
 
-def zip_files(output_dir: Path, config):
-    zip_name = config.get("zip_name", "audio_files") + ".zip"
-    zip_path = output_dir / zip_name
-
-    logging.info(f"Creating ZIP archive at: {zip_path}")
-
+def zip_files(directory: Path, config: Dict[str, Any]) -> None:
+    zip_name: str = f"{config.get('zip_name', 'audio_files')}.zip"
+    zip_path: Path = directory / zip_name
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for file in output_dir.iterdir():
+        for file in directory.iterdir():
             if file.is_file() and file.suffix != ".zip":
                 zipf.write(file, arcname=file.name)
-
-    logging.info("ZIP created. Cleaning up...")
-
-    extensions_to_delete = {
-        file.suffix.lower()
-        for file in output_dir.iterdir()
-        if file.is_file() and file.suffix != ".zip"
-    }
-
-    cleanup_files(output_dir, extensions_to_delete)
+    extensions: Set[str] = {file.suffix.lower() for file in directory.iterdir() if file.is_file() and file.suffix != ".zip"}
+    cleanup_files(directory, extensions)

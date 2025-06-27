@@ -1,149 +1,149 @@
-# Audio Processing Script
+# Audio Processing Tool
 
-This script lets you batch download and trim audio from YouTube videos using CSV data — perfect for projects, schools, or events.
-
-## Table of Contents
-
-1. [✨ Features](#-features)  
-2. [📦 Requirements](#-requirements)  
-3. [⚙️ Installation](#-installation)  
-4. [🛠️ Configuration](#-configuration)  
-5. [📑 CSV Format](#-csv-format)  
-6. [🚀 Usage](#-usage)  
-7. [📋 Logging](#-logging)  
-8. [🤝 Support & Contribution](#-support--contribution)
+A Python tool for batch downloading, trimming, and processing audio clips from YouTube videos using data from a CSV file. Ideal for projects, education, or events where you need consistent, automated audio processing.
 
 ---
 
-## ✨ Features
+## Table of Contents
+
+1. [Features](#features)
+2. [Requirements](#requirements)
+3. [Installation](#installation)
+4. [Configuration](#configuration)
+5. [CSV Format](#csv-format)
+6. [Usage](#usage)
+7. [Logging](#logging)
+8. [Contributing & Support](#contributing--support)
+
+---
+
+## Features
 
 - 🔍 Download audio from YouTube search results  
 - ✂️ Trim clips at specified start times  
 - ⚙️ Fully configurable clip settings (duration: 40s, format: MP3 @ 320k)  
 - 🎚️ Audio processing: normalization to -20 dBFS, fade in & out  
 - 🚀 Parallel processing for fast batch handling  
-- 🖥️ Streamlit-based UI for interactive control  
+- 🖥️ Optional Streamlit-based UI for interactive control  
 - 📊 Visual progress bars & live success status  
 - 📝 Logging to `processes.log` with fresh logs per run
 
 ---
 
-## 📦 Requirements
+## Requirements
 
-- Python 3.7 or higher  
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp)  
-- [pydub](https://github.com/jiaaro/pydub)  
-- [tqdm](https://github.com/tqdm/tqdm)  
-- [streamlit](https://streamlit.io/)  
-- [ffmpeg](https://ffmpeg.org/) must be available in your system PATH  
+- Python 3.7 or higher
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp)
+- [pydub](https://github.com/jiaaro/pydub)
+- [tqdm](https://github.com/tqdm/tqdm)
+- [streamlit](https://streamlit.io/) (optional, for UI)
+- [ffmpeg](https://ffmpeg.org/) (must be in your system PATH)
 
 All Python dependencies are listed in `requirements.txt`.
 
 ---
 
-## ⚙️ Installation
+## Installation
 
-1. **Install Python** if not already installed.  
-
-2. **Install dependencies**:
-
+1. **Install Python** (if not already installed).
+2. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
+3. **Install ffmpeg:**
+   - macOS: `brew install ffmpeg`
+   - Windows: Download from https://ffmpeg.org/download.html and add `ffmpeg/bin` to your PATH.
 
-3. **Install ffmpeg**:
-
-   - macOS (Homebrew): `brew install ffmpeg`  
-   - Windows: Download from https://ffmpeg.org/download.html and add `ffmpeg/bin` to your PATH.  
-
-> **Note:**  
-> `ffmpeg` must be available in your system `PATH` for the scripts to function correctly.
+> **Note:** `ffmpeg` must be available in your system `PATH` for the scripts to function correctly.
 
 ---
 
-## 🛠️ Configuration
+## Configuration
 
-All settings are stored in `config.json`. Key sections include:
+All settings are managed in `config.json`. Key sections include:
 
-## General
+### General Settings
+- `output_dir`: Directory for processed audio files
+- `log_filename`: Log file name
+- `filename_template`: Template for output filenames
+- `cloud`: Enables cloud-related features (for UI; set to `false` for local use)
+- `overwrite`: Overwrite existing files if true
+- `parallel_workers`: Number of parallel processing jobs
+- `default_clip_duration_seconds`: Default duration for each audio clip
+- `max_download_retries`: Number of download retry attempts
+- `retry_delay_seconds`: Delay between retries (seconds)
 
-- `output_dir` (string): Directory where the processed clips will be saved.  
-- `log_filename` (string): Name of the file where logs will be written.  
-- `filename_template` (string): Template for output filenames.  
-- `cloud` (bool): If true, enables cloud-related features and will not work normally.  
-- `overwrite` (bool): If true, existing audio files will be overwritten.  
-- `parallel_workers` (int): Number of audio downloads/processing tasks to run in parallel.  
-- `default_clip_duration_seconds` (int): Length of each trimmed audio clip.  
-- `max_download_retries` (int): Number of retry attempts for failed downloads.  
-- `retry_delay_seconds` (int): Delay (in seconds) between download retries.  
-- `file` (string): Path to the CSV file to use for batch processing.
+### Audio Settings (`audio_settings`)
+- `format`: Output file format (e.g., `mp3`, `wav`)
+- `bitrate`: Output bitrate (e.g., `320k`)
+- `sample_rate`: Output sample rate (Hz)
+- `target_dBFS`: Target loudness for normalization
+- `normalize`: Whether to normalize audio
+- `fade_in` / `fade_out`: Enable fade effects
+- `fade_in_duration_ms` / `fade_out_duration_ms`: Fade durations (ms)
 
-## Audio Settings (`audio_settings`)
+### CSV Settings (`csv_settings`)
+- `file`: Path to the CSV file (default: `tests/shortertestdata.csv`)
+- `delimiter`: CSV delimiter (default: `;`)
+- `columns`: Mapping of internal field names to CSV column headers. Example:
+  ```json
+  "columns": {
+    "name": "Name",
+    "surname": "Surname",
+    "song": "Song (Title & Artist)",
+    "start_time": "Start Time (MM:SS)"
+  }
+  ```
 
-- `format` (string): Output file format, such as `mp3` or `wav`.  
-- `bitrate` (string): Desired bitrate for the audio output.  
-- `sample_rate` (int): Target sample rate for the audio in Hz.  
-- `target_dBFS` (float): Target loudness level for normalization in decibels.  
-- `fade_in` / `fade_out` (bool): Whether to apply fade effects at the beginning/end.  
-- `fade_in_duration_ms` / `fade_out_duration_ms` (int): Duration of fade effects in milliseconds.  
-- `normalize` (bool): Whether to normalize the volume of the audio.
-
-*Tip:* Adjust these values in the `config.json` file to suit your needs.
+*Edit `config.json` to match your CSV structure and desired output settings.*
 
 ---
 
-## 📑 CSV Format
+## CSV Format
 
-| Column Header             | Purpose                                                                                     |
-|---------------------------|---------------------------------------------------------------------------------------------|
-| **Name**                  | The person's first name. Used for naming and identification.                               |
-| **Surname**               | The person's last name. Used together with the first name for unique identification.       |
-| **Song (Title & Artist)** | The full song title and artist name. This is used to search for the correct audio track.   |
-| **Start Time (MM:SS)**    | The time offset in the song where the clip should start. Format must be minutes and seconds.|
+Your CSV file should have the following columns (headers can be customized in `config.json`):
+
+| Column Header             | Description                                                                                 |
+|--------------------------|---------------------------------------------------------------------------------------------|
+| **Name**                 | The person's first name. Used for naming and identification.                                |
+| **Surname**              | The person's last name. Used together with the first name for unique identification.        |
+| **Song (Title & Artist)**| The full song title and artist name. Used to search for the correct audio track.            |
+| **Start Time (MM:SS)**   | The time offset in the song where the clip should start. Format: minutes and seconds (e.g., 1:30). |
 
 ---
 
-## 🚀 Usage
+## Usage
 
-1. Place your CSV file in the project folder (e.g., `~/Documents/AudioProcessingScript/playlist.csv`).  
-
-2. Edit `config.json` to match your setup, including `csv_settings.file` and `filename_template`.  
-
+### Command Line
+1. Place your CSV file in the project folder (default: `tests/shortertestdata.csv`).
+2. Edit `config.json` as needed (especially the `csv_settings.columns` mapping and output directory).
 3. Run the script:
-
    ```bash
    python main.py
    ```
+4. Processed audio files will appear in the configured output directory.
 
-4. (Optional) Use the Streamlit UI:
-
+### Streamlit UI (Optional)
+1. Ensure `streamlit` is installed.
+2. Run the UI:
    ```bash
    streamlit run UI.py
    ```
-
-> ⚠️ **Important Setting:**  
-> The `cloud` is set to `True` by default in UI.py:
-
-> ```python
-> config["cloud"] = config.get("cloud", False)
-> ```
-
-> Change this to `False` if you want to enable the local UI.
-
-5. View processed files in the configured output directory.
+3. Use the web interface to configure and launch processing jobs.
+   > **Note:** Set `cloud` to `false` in `config.json` for local UI operation.
 
 ---
 
-## 📋 Logging
+## Logging
 
-- Logs are saved to the file specified in `log_filename` (default: `processes.log`)  
-- Each run creates a fresh log  
-- Logs include timestamps, thread info, success markers, and errors  
+- Logs are saved to the file specified in `log_filename` (default: `processes.log`).
+- Each run creates a fresh log.
+- Logs include timestamps, thread info, success markers, and errors.
 
 ---
 
-## 🤝 Support & Contribution
+## Contributing & Support
 
-- Found a bug? [Open an issue](https://github.com/robertk08/AudioProcessingScript/issues)  
-- Want to improve the project? Submit a pull request!  
+- Found a bug? [Open an issue](https://github.com/robertk08/AudioProcessingScript/issues)
+- Want to improve the project? Submit a pull request!
 - Questions? Contact the author or contribute via the repository.

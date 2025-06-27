@@ -2,51 +2,50 @@ import csv
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
-
+from pathlib import Path
+from typing import Any, Dict, Optional, Callable
 from .process_row import process_row
 from .utils import zip_files
 
-
-def process_csv(csv_path, output_dir, config, csv_settings, audio_settings, progress=None):
-    delimiter = csv_settings.get("delimiter", ",")
-    max_workers = config.get("parallel_workers", 4)
-
+def process_csv(
+    csv_path: str,
+    output_dir: Path,
+    config: Dict[str, Any],
+    csv_settings: Dict[str, Any],
+    audio_settings: Dict[str, Any],
+    progress: Optional[Any] = None
+) -> None:
+    delimiter: str = csv_settings.get("delimiter", ",")
+    max_workers: int = config.get("parallel_workers", 4)
     try:
-        with open(csv_path, newline='', encoding="utf-8") as csv_file:
-            reader = csv.DictReader(csv_file, delimiter=delimiter)
-            rows = list(reader)
-
-        total_rows = len(rows)
-        logging.info(f"CSV contains {total_rows} rows: {csv_path}")
-
-        failed_count = 0
-        progress_bar = tqdm(total=total_rows, unit="file", dynamic_ncols=True)
+        with open(csv_path, newline='', encoding="utf-8") as f:
+            rows = list(csv.DictReader(f, delimiter=delimiter))
+        if not rows:
+            logging.warning(f"CSV file is empty: {csv_path}")
+            return
+        total: int = len(rows)
+        logging.info(f"CSV contains {total} rows: {csv_path}")
+        failed: int = 0
+        bar = tqdm(total=total, unit="file", dynamic_ncols=True)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_row = {
-                executor.submit(process_row, row, output_dir, config, csv_settings, audio_settings): row
-                for row in rows
-            }
-
-            for future in as_completed(future_to_row):
+            futures = {executor.submit(process_row, row, output_dir, config, csv_settings, audio_settings): row for row in rows}
+            for future in as_completed(futures):
                 try:
                     future.result()
                 except Exception as e:
-                    failed_count += 1
-                    logging.error(f"Error processing row {future_to_row[future]}: {e}")
+                    failed += 1
+                    logging.error(f"Error processing row {futures[future]}: {e}")
                 finally:
-                    progress_bar.update(1)
+                    bar.update(1)
                     if progress and callable(getattr(progress, "progress", None)):
                         try:
-                            progress.progress(round(progress_bar.n / total_rows * 100))
+                            progress.progress(round(bar.n / total * 100))
                         except Exception as e:
                             logging.warning(f"Failed to update progress: {e}")
-
-        progress_bar.close()
-        logging.info(f"CSV processing complete. {failed_count} rows failed.")
-
+        bar.close()
+        logging.info(f"CSV processing complete. {failed} rows failed.")
         if config.get("zip_output", False):
             zip_files(output_dir, config)
-
     except FileNotFoundError:
         logging.error(f"CSV file not found: {csv_path}")
     except Exception as e:

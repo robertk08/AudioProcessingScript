@@ -2,14 +2,13 @@ from pathlib import Path
 import logging
 import json
 import tempfile
-
+from typing import Dict, Any, Tuple
 from .utils import cleanup_files
 
 
-def load_config(path="config.json"):
+def load_config(path: str = "config.json") -> Dict[str, Any]:
     try:
-        path = Path(path).expanduser().resolve()
-        with path.open("r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         raise FileNotFoundError(f"Config file '{path}' not found.")
@@ -17,9 +16,9 @@ def load_config(path="config.json"):
         raise ValueError(f"Invalid JSON in config file: {e}")
 
 
-def setup_logging(config):
-    log_file = config.get("log_filename", "processes.log")
-    Path(log_file).write_text("", encoding="utf-8")
+def setup_logging(config: Dict[str, Any]) -> None:
+    log_file: str = config.get("log_filename", "processes.log")
+    Path(log_file).write_text("")
     logging.basicConfig(
         filename=log_file,
         level=logging.INFO,
@@ -27,25 +26,26 @@ def setup_logging(config):
     )
 
 
-def prepare_output_directory(config):
-    is_cloud = config.get("cloud", False)
-    output_dir = (
-        Path(tempfile.gettempdir()) / "audioprocessing_output"
-        if is_cloud
-        else Path(config.get("output_dir", "./output")).expanduser()
-    )
-    output_dir.mkdir(parents=True, exist_ok=True)
+def prepare_output_directory(config: Dict[str, Any]) -> Path:
+    if config.get("cloud", False):
+        temp_dir_path: Path = Path(tempfile.gettempdir()) / "audioprocessing_output"
+        temp_dir_path.mkdir(parents=True, exist_ok=True)
+        if config.get("cloud", False) or config.get("overwrite", False):
+            cleanup_files(temp_dir_path, {".webm", ".mp3", ".wav", ".zip"})
+        return temp_dir_path
+    else:
+        output_dir_path: Path = Path(config.get("output_dir", "./output")).expanduser()
+        output_dir_path.mkdir(parents=True, exist_ok=True)
+        if config.get("cloud", False) or config.get("overwrite", False):
+            cleanup_files(output_dir_path, {".webm", ".mp3", ".wav", ".zip"})
+        return output_dir_path
 
-    if is_cloud or config.get("overwrite", False):
-        cleanup_files(output_dir, {".webm", ".mp3", ".wav", ".zip"})
-    return output_dir
 
-
-def initialize():
-    config = load_config()
+def initialize() -> Tuple[str, Path, Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    config: Dict[str, Any] = load_config()
     setup_logging(config)
-    csv_settings = config.get("csv_settings", {})
-    audio_settings = config.get("audio_settings", {})
-    csv_file = csv_settings.get("file", "testdata.csv")
-    output_dir = prepare_output_directory(config)
+    csv_settings: Dict[str, Any] = config.get("csv_settings", {})
+    audio_settings: Dict[str, Any] = config.get("audio_settings", {})
+    csv_file: str = csv_settings.get("file", "testdata.csv")
+    output_dir: Path = prepare_output_directory(config)
     return csv_file, output_dir, config, csv_settings, audio_settings

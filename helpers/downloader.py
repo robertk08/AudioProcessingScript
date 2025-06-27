@@ -1,27 +1,29 @@
 import subprocess
 import logging
 import time
+from pathlib import Path
+from typing import Dict, Any
 
-
-def download_song(query, temp_file_path, config, audio_settings):
-    max_retries = config.get("max_download_retries", 3)
-    retry_delay = config.get("retry_delay_seconds", 5)
-    audio_format = audio_settings.get("format", "mp3").lower()
-
-    command = [
-        "yt-dlp",
-        "--extract-audio",
+def download_song(
+    query: str,
+    temp_path: Path,
+    config: Dict[str, Any],
+    audio_settings: Dict[str, Any]
+) -> bool:
+    max_retries: int = config.get("max_download_retries", 3)
+    retry_delay: int = config.get("retry_delay_seconds", 5)
+    audio_format: str = audio_settings.get("format", "mp3").lower()
+    command: list[str] = [
+        "yt-dlp", "--extract-audio",
         "--audio-format", audio_format,
         "--audio-quality", "0",
         "-f", "bestaudio/best",
-        "-o", temp_file_path.as_posix(),
+        "-o", temp_path.as_posix(),
         f"ytsearch1:{query}"
     ]
-
     for attempt in range(1, max_retries + 1):
         try:
             logging.info(f"Attempting download: '{query}', attempt {attempt}")
-            logging.debug(f"Download command: {' '.join(command)}")
             subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, text=True)
             return True
         except subprocess.CalledProcessError as e:
