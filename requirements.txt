@@ -2,4 +2,3 @@ streamlit
 pydub
 tqdm
 yt-dlp
-ffmpeg

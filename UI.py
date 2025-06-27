@@ -32,6 +32,15 @@ with st.form("settings_form"):
     )
     submitted = st.form_submit_button("Save Settings")
 
+log_file = Path(config.get("log_filename", "processes.log"))
+if log_file.exists():
+    with open(log_file, "r", encoding="utf-8") as f:
+        log_content = f.read()
+        if log_content.strip():
+            st.text_area("Log Output", log_content, height=300)
+        else:
+            st.info("Log file is empty.")
+
 uploaded_csv = st.file_uploader("Upload CSV file", type="csv")
 
 if uploaded_csv:
@@ -68,16 +77,6 @@ if uploaded_csv:
                 )
         else:
             st.warning("No zip file found. Check your config and try again.")
-
-
-log_file = Path(config.get("log_filename", "processes.log"))
-if log_file.exists():
-    with open(log_file, "r", encoding="utf-8") as f:
-        log_content = f.read()
-        if log_content.strip():
-            st.text_area("Log Output", log_content, height=300)
-        else:
-            st.info("Log file is empty.")
 else:
     st.info("No log file found.")
        
