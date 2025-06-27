@@ -8,9 +8,9 @@ st.set_page_config(page_title="Audio Snippet Generator", layout="centered")
 st.title("🎧 Audio Snippet Generator")
 
 csv_file, output_dir, config, csv_settings, audio_settings = initialize()
-config["zip_output"] = True
-config["output_dir"] = "output"
-config["parallel_workers"] = 6
+# config["zip_output"] = True
+# config["output_dir"] = "output"
+# config["parallel_workers"] = 6
 
 # Minimal settings
 with st.form("settings_form"):
