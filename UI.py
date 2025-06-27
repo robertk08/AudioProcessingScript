@@ -4,10 +4,14 @@ from pathlib import Path
 from helpers.process_csv import process_csv
 from helpers.setup import initialize
 import subprocess
+import os
+
 
 st.set_page_config(page_title="Audio Snippet Generator", layout="centered")
 st.title("🎧 Audio Snippet Generator")
 
+# Add .local/bin to PATH
+os.environ["PATH"] += os.pathsep + os.path.expanduser("~/.local/bin")
 
 # Update yt-dlp to the latest version (including pre-releases/nightly)
 subprocess.run(
@@ -16,9 +20,9 @@ subprocess.run(
 )
 
 csv_file, output_dir, config, csv_settings, audio_settings = initialize()
-# config["zip_output"] = True
-# config["output_dir"] = "output"
-# config["parallel_workers"] = 6
+config["zip_output"] = True
+config["output_dir"] = "output"
+config["parallel_workers"] = 6
 
 # Minimal settings
 with st.form("settings_form"):
