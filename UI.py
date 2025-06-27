@@ -10,6 +10,7 @@ st.title("🎧 Audio Snippet Generator")
 csv_file, output_dir, config, csv_settings, audio_settings = initialize()
 config["zip_output"] = True
 config["output_dir"] = "output"
+config["parallel_workers"] = 4
 
 # Minimal settings
 with st.form("settings_form"):
@@ -69,7 +70,7 @@ if uploaded_csv:
             st.warning("No zip file found. Check your config and try again.")
 
 
-log_file = config.get("log_filename", "processes.log")
+log_file = Path(config.get("log_filename", "processes.log"))
 if log_file.exists():
     with open(log_file, "r", encoding="utf-8") as f:
         log_content = f.read()
