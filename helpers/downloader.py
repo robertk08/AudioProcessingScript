@@ -23,7 +23,7 @@ def download_song(
         "--no-continue",
         "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
         "--referer", "https://www.youtube.com/",
-        "--cookies", "/path/to/cookies.txt",
+        "--cookies", "cookies.txt",
         "-o", temp_path.as_posix(),
         f"ytsearch1:{query}"
     ]
