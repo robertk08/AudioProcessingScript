@@ -1,33 +1,37 @@
+# macOS system files
+.DS_Store
+
+# Python bytecode and cache
 __pycache__/
 *.py[cod]
 
-# Logs
-*.log
+# IDE/editor folders
+.vscode/
+.idea/
 
 # Virtual environments
 env/
 venv/
 .venv/
 
-# Editor/IDE folders
-.vscode/
-.idea/
+# Logs
+*.log
 
-# macOS
-.DS_Store
-
-# Containers & remote development
-.devcontainer/
-
-# Misc
-*.bak
-*.swp
-
-# Streamlit specific
+# Streamlit config
 .streamlit/
 
-# Audio files
+# Audio output files (ignored to keep repo clean)
 *.mp3
 *.wav
 *.webm
 *.part
+
+# Backup and swap files
+*.bak
+*.swp
+
+# Compressed output
+*.zip
+
+# Containers & remote development
+.devcontainer/

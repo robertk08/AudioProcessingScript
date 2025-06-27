@@ -1,26 +1,30 @@
 {
   "output_dir": "~/Desktop/AudioFiles",
   "log_filename": "processes.log",
-  "filename_template": "{2}, {1}, {3}",
+  "filename_template": "{name}, {surname} ({song})",
+
   "cloud": false,
+  "zip_output": false,
+  "zip_name": "audio_files",
   "overwrite": true,
+
   "parallel_workers": 15,
   "default_clip_duration_seconds": 40,
   "max_download_retries": 3,
   "retry_delay_seconds": 5,
-  
+
   "audio_settings": {
     "format": "mp3",
     "bitrate": "320k",
     "sample_rate": 44100,
     "target_dBFS": -20.0,
+    "normalize": true,
     "fade_in": true,
     "fade_in_duration_ms": 5000,
     "fade_out": true,
-    "fade_out_duration_ms": 15000,
-    "normalize": true
+    "fade_out_duration_ms": 15000
   },
-  
+
   "csv_settings": {
     "file": "tests/shortertestdata.csv",
     "delimiter": ";",

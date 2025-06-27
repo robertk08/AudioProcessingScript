@@ -53,11 +53,14 @@ with tab1:
     st.header("📄 Upload CSV")
     st.markdown("Upload a CSV file to process multiple entries at once.")
 
-    output_dir = st.text_input(
-        "📁 Output Directory",
-        value=str(Path(config.get("output_dir", "./output")).expanduser()),
-        help="Enter the path where processed audio files should be saved."
-    )
+    output_dir = config.get("output_dir", "./output")
+    
+    if config.get("cloud", False):
+        output_dir = st.text_input(
+            "📁 Output Directory",
+            value=str(Path(config.get("output_dir", "./output")).expanduser()),
+            help="Enter the path where processed audio files should be saved."
+        )
 
     uploaded_csv = st.file_uploader("📂 Choose a CSV file", type="csv")
 
