@@ -3,10 +3,17 @@ import tempfile
 from pathlib import Path
 from helpers.process_csv import process_csv
 from helpers.setup import initialize
-import os
+import subprocess
 
 st.set_page_config(page_title="Audio Snippet Generator", layout="centered")
 st.title("🎧 Audio Snippet Generator")
+
+
+# Update yt-dlp to the latest version (including pre-releases/nightly)
+subprocess.run(
+    ["python3", "-m", "pip", "install", "-U", "--force-reinstall", "--pre", "yt-dlp"],
+    check=False
+)
 
 csv_file, output_dir, config, csv_settings, audio_settings = initialize()
 # config["zip_output"] = True
