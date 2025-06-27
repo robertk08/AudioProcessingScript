@@ -17,7 +17,12 @@ def download_song(
         "yt-dlp", "--extract-audio",
         "--audio-format", audio_format,
         "--audio-quality", "0",
-        "-f", "bestaudio/best",
+        "-f", "bestaudio",
+        "--no-playlist",
+        "--no-part",
+        "--no-continue",
+        "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "--cookies", "/path/to/cookies.txt",
         "-o", temp_path.as_posix(),
         f"ytsearch1:{query}"
     ]
