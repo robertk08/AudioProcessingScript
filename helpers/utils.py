@@ -25,16 +25,15 @@ def cleanup_files(directory: Path, extensions: Set[str]) -> None:
 
 
 def zip_files(directory: Path, config: Dict[str, Any]) -> None:
-    zip_name: str = f"{config.get('zip_name', 'audio_files')}.zip"
-    zip_path: Path = directory / zip_name
-    log_filename = config.get('log_filename', 'processes.log')
+    zip_path: Path = directory / f"{config.get('zip_name', 'audio_files')}.zip"
+    
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for file in directory.iterdir():
             if file.is_file() and file.suffix != ".zip":
                 zipf.write(file, arcname=file.name)
-        # Add log file if it exists and isn't already zipped
-        log_path = directory / log_filename
-        if log_path.exists() and log_path != zip_path:
+        
+        log_path: Path = directory / config.get('log_filename', 'processes.log')
+        if log_path.exists():
             zipf.write(log_path, arcname=log_path.name)
     extensions: Set[str] = {file.suffix.lower() for file in directory.iterdir() if file.is_file() and file.suffix != ".zip"}
     cleanup_files(directory, extensions)

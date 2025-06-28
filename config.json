@@ -1,11 +1,11 @@
 {
-  "output_dir": "output",
+  "output_dir": "~/Desktop/Audio",
   "log_filename": "processes.log",
   "filename_template": "{name}, {surname} ({song})",
 
-  "zip_output": true,
+  "zip_output": false,
   "zip_name": "audio_files",
-  "overwrite": true,
+  "overwrite": false,
 
   "parallel_workers": 15,
   "default_clip_duration_seconds": 40,
@@ -21,7 +21,7 @@
     "fade_in": true,
     "fade_in_duration_ms": 5000,
     "fade_out": true,
-    "fade_out_duration_ms": 15000
+    "fade_out_duration_ms": 10000
   },
 
   "csv_settings": {
