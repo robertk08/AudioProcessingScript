@@ -5,7 +5,7 @@ from tqdm import tqdm
 from pathlib import Path
 from typing import Any, Dict, Optional
 from .process_row import process_row
-from .utils import zip_files
+from .utils import zip_files, copy_log_file
 
 def process_csv(
     csv_path: str,
@@ -50,21 +50,9 @@ def process_csv(
         
         logging.info(f"CSV processing complete. {failed} rows failed.")
         
-        log_path: Path = Path(config.get("log_filename", "processes.log"))
-        if not log_path.is_absolute():
-            log_path = Path.cwd() / log_path
+        copy_log_file(config, output_dir)
+        zip_files(output_dir, config)
         
-        if log_path.exists():
-            try:
-                dest_log_path: Path = output_dir / log_path.name
-                if log_path.resolve() != dest_log_path.resolve():
-                    with open(log_path, "rb") as src, open(dest_log_path, "wb") as dst:
-                        dst.write(src.read())
-            except Exception as e:
-                logging.warning(f"Failed to copy log file to output directory: {e}")
-        
-        if config.get("zip_output", False):
-            zip_files(output_dir, config)
     except FileNotFoundError:
         logging.error(f"CSV file not found: {csv_path}")
     except Exception as e:

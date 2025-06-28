@@ -17,22 +17,22 @@ def process_row(
     audio_format: str = audio_settings.get("format", "mp3")
     overwrite: bool = config.get("overwrite", False)
 
-    for key in ["name", "surname", "song", "start_time"]:
+    for key in ["surname", "name", "song", "start_time"]:
         col: str = columns.get(key, "")
         if col not in row:
             logging.error(f"Missing CSV column '{col}' for key '{key}' in row: {row}")
             return None
-
-    name: str = row.get(columns["name"], "").strip()
+        
     surname: str = row.get(columns["surname"], "").strip()
+    name: str = row.get(columns["name"], "").strip()
     song: str = row.get(columns["song"], "").strip()
-    start_time: str = row.get(columns["start_time"], "").strip()
+    start_time: str = row.get(columns["start_time"], "").strip() or "0:00"
 
-    if not all([name, surname, song, start_time]):
+    if not all([surname, name, song, start_time]):
         logging.info(f"Skipping incomplete row: {row}")
         return None
 
-    row_data: Dict[str, Any] = {"name": name, "surname": surname, "song": song, "start_time": start_time}
+    row_data: Dict[str, Any] = {"surname": surname, "name": name, "song": song, "start_time": start_time}
     template: str = config.get("filename_template", "{surname}, {name}")
     
     try:

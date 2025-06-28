@@ -3,9 +3,9 @@
   "log_filename": "processes.log",
   "filename_template": "{name}, {surname} ({song})",
 
-  "zip_output": false,
+  "zip_output": true,
   "zip_name": "audio_files",
-  "overwrite": false,
+  "overwrite": true,
 
   "parallel_workers": 15,
   "default_clip_duration_seconds": 40,
@@ -25,11 +25,11 @@
   },
 
   "csv_settings": {
-    "file": "tests/shortertestdata.csv",
+    "file": "Abiturentlassfeier_Lieder_ueberarbeitet.csv",
     "delimiter": ";",
     "columns": {
-      "name": "Name",
-      "surname": "Nachname",
+      "surname": "Name ",
+      "name": "Nachname ",
       "song": "Lied (Titel & Künstler)",
       "start_time": "Startzeit (Minute/Sekunde)"
     }
