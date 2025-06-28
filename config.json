@@ -3,8 +3,8 @@
   "log_filename": "processes.log",
   "filename_template": "{name}, {surname} ({song})",
 
-  "zip_output": true,
-  "zip_name": "audio_files",
+  "zip_output": false,
+  "zip_name": "audio_snippets",
   "overwrite": true,
 
   "parallel_workers": 15,
