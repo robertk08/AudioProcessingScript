@@ -1,38 +1,37 @@
 import logging
+from typing import Dict, Any, Union
 from pydub import AudioSegment
 from .utils import timestamp_to_ms
 
-def match_target_amplitude(sound, audio_settings):
-    target_dBFS = audio_settings.get("target_dBFS", -20.0)
-    change_in_dBFS = target_dBFS - sound.dBFS
-    return sound.apply_gain(change_in_dBFS)
-
-def trim_song(input_path, output_path, start_time, config, audio_settings):
-    duration_sec = config.get("default_clip_duration_seconds", 30)
-    normalize = audio_settings.get("normalize", True)
-    fade_in_enabled = audio_settings.get("fade_in", False)
-    fade_in_duration = audio_settings.get("fade_in_duration_ms", 0)
-    fade_out_enabled = audio_settings.get("fade_out", False)
-    fade_out_duration = audio_settings.get("fade_out_duration_ms", 0)
-    audio_format = audio_settings.get("format", "mp3")
-    bitrate = audio_settings.get("bitrate", None)
-    sample_rate = audio_settings.get("sample_rate", None)
-
-    start_ms = timestamp_to_ms(start_time)
+def trim_song(input_path: str, output_path: str, start_time: str, config: Dict[str, Any], audio_settings: Dict[str, Any]) -> bool:
+    duration_sec: int = config.get("default_clip_duration_seconds", 30)
+    normalize: bool = audio_settings.get("normalize", True)
+    fade_in_enabled: bool = audio_settings.get("fade_in", False)
+    fade_in_duration: int = audio_settings.get("fade_in_duration_ms", 0)
+    fade_out_enabled: bool = audio_settings.get("fade_out", False)
+    fade_out_duration: int = audio_settings.get("fade_out_duration_ms", 0)
+    audio_format: str = audio_settings.get("format", "mp3")
+    bitrate: Union[str, None] = audio_settings.get("bitrate", None)
+    sample_rate: Union[int, None] = audio_settings.get("sample_rate", None)
 
     try:
-        audio = AudioSegment.from_file(input_path)
-        end_ms = start_ms + duration_sec * 1000
-        snippet = audio[start_ms:min(end_ms, len(audio))].set_channels(2)
+        audio: AudioSegment = AudioSegment.from_file(input_path)
+        start_ms: Union[int, None] = timestamp_to_ms(start_time)
+        if start_ms is None:
+            return False
+        
+        end_ms: int = min(start_ms + duration_sec * 1000, len(audio))
+        snippet: AudioSegment = audio[start_ms:end_ms].set_channels(2)  # type: ignore
 
         if normalize:
-            snippet = match_target_amplitude(snippet, audio_settings)
+            target_dBFS: float = audio_settings.get("target_dBFS", -20.0)
+            snippet = snippet.apply_gain(target_dBFS - snippet.dBFS)
         if fade_in_enabled and fade_in_duration > 0:
             snippet = snippet.fade_in(fade_in_duration)
         if fade_out_enabled and fade_out_duration > 0:
             snippet = snippet.fade_out(fade_out_duration)
 
-        export_kwargs = {}
+        export_kwargs: Dict[str, Any] = {}
         if bitrate and audio_format.lower() == "mp3":
             export_kwargs["bitrate"] = bitrate
         if sample_rate:

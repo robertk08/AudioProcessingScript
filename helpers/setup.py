@@ -17,7 +17,7 @@ def load_config(path: str = "config.json") -> Dict[str, Any]:
 
 def setup_logging(config: Dict[str, Any]) -> None:
     log_file: str = config.get("log_filename", "processes.log")
-    log_path = Path(log_file)
+    log_path: Path = Path(log_file)
     log_path.parent.mkdir(parents=True, exist_ok=True)
     log_path.write_text("")
     logging.basicConfig(
@@ -28,11 +28,11 @@ def setup_logging(config: Dict[str, Any]) -> None:
 
 
 def prepare_output_directory(config: Dict[str, Any]) -> Path:
-    output_dir_path: Path = Path(config.get("output_dir", "./output")).expanduser()
-    output_dir_path.mkdir(parents=True, exist_ok=True)
+    output_dir: Path = Path(config.get("output_dir", "./output")).expanduser()
+    output_dir.mkdir(parents=True, exist_ok=True)
     if config.get("overwrite", False):
-        cleanup_files(output_dir_path, {".webm", ".mp3", ".wav", ".zip", ".log"})
-    return output_dir_path
+        cleanup_files(output_dir, {".webm", ".mp3", ".wav", ".zip", ".log"})
+    return output_dir
 
 
 def initialize() -> Tuple[str, Path, Dict[str, Any], Dict[str, Any], Dict[str, Any]]:

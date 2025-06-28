@@ -28,7 +28,6 @@ A Python tool for batch downloading, trimming, and processing audio clips from Y
 - 🖥️ Optional Streamlit-based UI for interactive control  
 - 📊 Visual progress bars & live success status  
 - 📝 Logging to `processes.log` with fresh logs per run  
-- 🧑‍💻 Type hints and improved code quality for maintainability  
 - 🛡️ Robust error handling and configuration validation
 
 ---
@@ -93,9 +92,9 @@ All settings are managed in `config.json`. Key sections include:
   ```json
   "columns": {
     "name": "Name",
-    "surname": "Nachname",
-    "song": "Lied (Titel & Künstler)",
-    "start_time": "Startzeit (Minute/Sekunde)"
+    "surname": "Surname",
+    "song": "Song (Title & Artist)",
+    "start_time": "Start Time (MM:SS)"
   }
   ```
 
@@ -112,7 +111,7 @@ Your CSV file should have the following columns (headers can be customized in `c
 | **Name**                       | The person's first name. Used for naming and identification.                               |
 | **Surname**                    | The person's last name. Used together with the first name for unique identification.       |
 | **Song (Title & Artist)**      | The full song title and artist name. Used to search for the correct audio track.           |
-| **Start Time (MM:SS)**         | The time offset in the song where the clip should start. Format: minutes and seconds (e.g., 1:30). |
+| **Start Time (MM:SS)**         | The time offset in the song where the clip should start. Format: minutes and seconds (e.g., 01:30). |
 
 ---
 
@@ -149,8 +148,6 @@ Your CSV file should have the following columns (headers can be customized in `c
 
 - All core modules use **type hints** for better readability and maintainability.
 - The codebase is structured for easy testing and extension.
-- Linter errors are resolved; type: ignore is used only where necessary (e.g., for pydub slicing).
-- To add tests, use [pytest](https://docs.pytest.org/) and mock file/network operations as needed.
 
 ---
 
