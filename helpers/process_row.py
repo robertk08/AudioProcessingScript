@@ -27,6 +27,9 @@ def process_row(
     name: str = row.get(columns["name"], "").strip()
     song: str = row.get(columns["song"], "").strip()
     start_time: str = row.get(columns["start_time"], "").strip() or "0:00"
+    link = row.get(columns["link"], "").strip()        
+    
+    download_query: str = link if link else song
 
     if not all([surname, name, song, start_time]):
         logging.info(f"Skipping incomplete row: {row}")
@@ -54,8 +57,8 @@ def process_row(
     logging.info(f"Processing: {name} {surname}, Song: {song}, Start: {start_time}")
 
     try:
-        if not download_song(song, temp_path, config, audio_settings):
-            logging.error(f"Download failed: {song}")
+        if not download_song(download_query, temp_path, config, audio_settings, is_link=bool(link)):
+            logging.error(f"Download failed: {download_query}")
             return False
 
         downloaded_file: Path = Path(str(temp_path).replace("%(ext)s", audio_format))
