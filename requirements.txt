@@ -1,4 +1,4 @@
 streamlit
 pydub
 tqdm
-yt-dlp --pre
+yt-dlp

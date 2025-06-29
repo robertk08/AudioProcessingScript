@@ -20,7 +20,8 @@ A Python tool for batch downloading, trimming, and processing audio clips from Y
 
 ## Features
 
-- 🔍 Download audio from YouTube search results  
+- 🔍 Download audio from YouTube search results or direct links  
+- 🔗 Support for direct YouTube URLs (when provided in CSV) with fallback to song name search
 - ✂️ Trim clips at specified start times  
 - ⚙️ Fully configurable clip settings (duration, format, bitrate, sample rate, normalization, fade in/out)  
 - 🎚️ Audio processing: normalization to target dBFS, fade in & out  
@@ -94,7 +95,8 @@ All settings are managed in `config.json`. Key sections include:
     "name": "Name",
     "surname": "Surname",
     "song": "Song (Title & Artist)",
-    "start_time": "Start Time (MM:SS)"
+    "start_time": "Start Time (MM:SS)",
+    "link": "Link"
   }
   ```
 
@@ -110,8 +112,11 @@ Your CSV file should have the following columns (headers can be customized in `c
 |------------------------------- |--------------------------------------------------------------------------------------------|
 | **Name**                       | The person's first name. Used for naming and identification.                               |
 | **Surname**                    | The person's last name. Used together with the first name for unique identification.       |
-| **Song (Title & Artist)**      | The full song title and artist name. Used to search for the correct audio track.           |
+| **Song (Title & Artist)**      | The full song title and artist name. Used to search for the correct audio track when no link is provided. |
 | **Start Time (MM:SS)**         | The time offset in the song where the clip should start. Format: minutes and seconds (e.g., 01:30). |
+| **Link**                       | *(Optional)* Direct YouTube URL. If provided, this link will be used for downloading instead of searching by song name. |
+
+**Note:** The Link column is optional. If a link is provided, it will be used directly for downloading. If no link is provided or the link field is empty, the system will fall back to searching YouTube using the song name and artist.
 
 ---
 
