@@ -16,11 +16,16 @@ def trim_song(input_path: str, output_path: str, start_time: str, config: Dict[s
 
     try:
         audio: AudioSegment = AudioSegment.from_file(input_path)
-        start_ms: Union[int, None] = timestamp_to_ms(start_time)
-        if start_ms is None:
+        ts_result = timestamp_to_ms(start_time)
+        if ts_result is None:
             return False
-        
-        end_ms: int = min(start_ms + duration_sec * 1000, len(audio))
+        if isinstance(ts_result, tuple):
+            start_ms, end_ms = ts_result
+            if not (0 <= start_ms < end_ms <= len(audio)):
+                return False
+        else:
+            start_ms = ts_result
+            end_ms = min(start_ms + duration_sec * 1000, len(audio))
         snippet: AudioSegment = audio[start_ms:end_ms].set_channels(2)  # type: ignore
 
         if normalize:

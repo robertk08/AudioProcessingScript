@@ -29,3 +29,6 @@ venv/
 
 # Containers & remote development
 .devcontainer/
+
+# Ignore CSVs only in root
+/*.csv

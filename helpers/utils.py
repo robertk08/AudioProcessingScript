@@ -2,17 +2,24 @@ import logging
 import zipfile
 import shutil
 from pathlib import Path
-from typing import Optional, Set, Dict, Any
+from typing import Optional, Set, Dict, Any, Union
 
 
-def timestamp_to_ms(timestamp: str) -> Optional[int]:
+def timestamp_to_ms(timestamp: str) -> Optional[Union[int, tuple[int, int]]]:
     try:
-        minutes, seconds = map(int, timestamp.strip().split(":"))
-        if minutes < 0 or seconds < 0 or seconds >= 60:
-            raise ValueError
+        if "/" in timestamp:
+            start_str, end_str = map(str.strip, timestamp.split("/", 1))
+            start_ms = timestamp_to_ms(start_str)
+            end_ms = timestamp_to_ms(end_str)
+            if isinstance(start_ms, int) and isinstance(end_ms, int):
+                return (start_ms, end_ms)
+            return None
+        minutes, seconds = map(int, map(str.strip, timestamp.split(":", 1)))
+        if minutes < 0 or not (0 <= seconds < 60):
+            return None
         return (minutes * 60 + seconds) * 1000
     except Exception:
-        logging.error(f"Invalid start time '{timestamp}'")
+        logging.error(f"Invalid timestamp '{timestamp}'")
         return None
 
 

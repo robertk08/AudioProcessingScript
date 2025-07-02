@@ -19,13 +19,13 @@
     "target_dBFS": -20.0,
     "normalize": true,
     "fade_in": true,
-    "fade_in_duration_ms": 5000,
+    "fade_in_duration_ms": 3000,
     "fade_out": true,
-    "fade_out_duration_ms": 10000
+    "fade_out_duration_ms": 7000
   },
 
   "csv_settings": {
-    "file": "liste_entlassfeier_finalv2.csv",
+    "file": "liste_entlassfeier.csv",
     "delimiter": ";",
     "columns": {
       "surname": "Name ",
